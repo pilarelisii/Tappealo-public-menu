@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 30 25% 96%;           /* beige muy claro */
+    --foreground: 25 60% 15%;           /* marrón oscuro */
+
+    --card: 30 20% 98%;                 /* beige claro para cards */
+    --card-foreground: 25 60% 15%;      /* marrón oscuro */
+
+    --popover: 30 20% 98%;
+    --popover-foreground: 25 60% 15%;
+
+    --primary: 25 50% 25%;              /* marrón principal */
+    --primary-foreground: 30 25% 96%;   /* beige claro */
+
+    --secondary: 30 15% 92%;            /* gris-beige */
+    --secondary-foreground: 25 50% 25%; /* marrón */
+
+    --muted: 30 15% 90%;                /* beige apagado */
+    --muted-foreground: 25 30% 45%;     /* marrón medio */
+
+    --accent: 25 40% 88%;               /* marrón claro/crema */
+    --accent-foreground: 25 60% 15%;    /* marrón oscuro */
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 25 20% 88%;               /* borde marrón suave */
+    --input: 30 15% 92%;
+    --ring: 25 50% 25%;                 /* marrón principal */
+
+    --radius: 0.75rem;
+    
+    /* Gradientes actualizados */
+    --hero-gradient: linear-gradient(135deg, hsl(30 25% 96%) 0%, hsl(30 20% 92%) 100%);
+    --card-shadow: 0 2px 8px hsla(25 60% 15% / 0.08);
+    --card-shadow-hover: 0 8px 24px hsla(25 60% 15% / 0.12);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Sidebar con tema marrón */
+    --sidebar-background: 30 25% 96%;
+    --sidebar-foreground: 25 60% 15%;
+    --sidebar-primary: 25 50% 25%;
+    --sidebar-primary-foreground: 30 25% 96%;
+    --sidebar-accent: 25 40% 88%;
+    --sidebar-accent-foreground: 25 60% 15%;
+    --sidebar-border: 25 20% 88%;
+    --sidebar-ring: 25 50% 25%;
+
+    /* Colores de columnas (nuevos) */
+    --column-entrante: 25 50% 25%;      /* marrón */
+    --column-preparacion: 40 90% 50%;   /* amarillo/dorado */
+    --column-retirar: 145 60% 40%;      /* verde */
+    --column-enviar: 200 70% 50%;       /* azul */
+    --column-terminadas: 270 50% 50%;   /* morado */
+    }
+
+
+  .dark {
+  --background: 25 30% 8%;            /* marrón muy oscuro */
+  --foreground: 30 20% 95%;           /* beige claro */
+
+  --card: 25 25% 12%;                 /* marrón oscuro para cards */
+  --card-foreground: 30 20% 95%;
+
+  --popover: 25 25% 12%;
+  --popover-foreground: 30 20% 95%;
+
+  --primary: 30 30% 80%;              /* marrón claro */
+  --primary-foreground: 25 30% 8%;    /* marrón oscuro */
+
+  --secondary: 25 20% 18%;            /* marrón oscuro */
+  --secondary-foreground: 30 20% 95%;
+
+  --muted: 25 15% 15%;
+  --muted-foreground: 30 15% 60%;
+
+  --accent: 25 25% 22%;               /* marrón medio-oscuro */
+  --accent-foreground: 30 20% 95%;
+
+  --destructive: 0 62.8% 50.6%;
+  --destructive-foreground: 30 20% 95%;
+
+  --border: 25 15% 20%;
+  --input: 25 15% 18%;
+  --ring: 30 30% 70%;
+
+  /* Gradientes dark */
+  --hero-gradient: linear-gradient(135deg, hsl(25 30% 8%) 0%, hsl(25 25% 12%) 100%);
+  --card-shadow: 0 2px 8px hsla(0 0% 0% / 0.3);
+  --card-shadow-hover: 0 8px 24px hsla(0 0% 0% / 0.4);
+
+  /* Sidebar dark */
+  --sidebar-background: 25 30% 8%;
+  --sidebar-foreground: 30 20% 95%;
+  --sidebar-primary: 30 30% 80%;
+  --sidebar-primary-foreground: 25 30% 8%;
+  --sidebar-accent: 25 25% 22%;
+  --sidebar-accent-foreground: 30 20% 95%;
+  --sidebar-border: 25 15% 20%;
+  --sidebar-ring: 30 30% 70%;
+
+  /* Colores de columnas dark */
+  --column-entrante: 30 40% 50%;
+  --column-preparacion: 40 80% 55%;
+  --column-retirar: 145 50% 50%;
+  --column-enviar: 200 60% 60%;
+  --column-terminadas: 270 40% 60%;
+}
+
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
