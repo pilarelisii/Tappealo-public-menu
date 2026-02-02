@@ -33,3 +33,6 @@ export type PublicPromotion = {
   enabled: boolean;
   items: { product_id: string; quantity: number }[];
 };
+
+const ORDER_STATUSES = ["entrante", "preparacion", "retirar", "enviar", "terminadas"] as const;
+export type OrderStatus = (typeof ORDER_STATUSES)[number];

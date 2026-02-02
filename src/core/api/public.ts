@@ -73,6 +73,16 @@ export type PaymentMethod = {
   };
 };
 
+export type PublicQrLocation = {
+  found: boolean;
+  id: string;
+  name: string | null;
+  type?: string | null; // si después querés "en_lugar" / "envio" etc
+}
+
+const ORDER_STATUSES = ["entrante", "preparacion", "retirar", "enviar", "terminadas"] as const;
+type OrderStatus = (typeof ORDER_STATUSES)[number];
+
 function getBaseUrl() {
   return (process.env.EXPO_PUBLIC_API_BASE ?? "").replace(/\/$/, "");
 }
@@ -163,11 +173,25 @@ export function getPublicFeaturedProducts(slug: string) {
   return apiGet<PublicProduct[]>(`/public/${encodeURIComponent(slug)}/products/featured`);
 }
 
+export function getPublicQrLocation(slug: string, qrlocationId: string) {
+  return apiGet<PublicQrLocation>(`/public/${encodeURIComponent(slug)}/qr_locations/${encodeURIComponent(qrlocationId)}`);
+}
+
 export function createPublicOrderPost(slug: string, body: CreateOrderBody) {
   return apiPost<{ id: string; ref_order_id?: string }>(
     `/public/${encodeURIComponent(slug)}/orders`,
     body
   );
+}
+export type PublicOrderStatusResponse = {
+  id: string;
+  status: "entrante" | "preparacion" | "retirar" | "enviar" | "terminadas";
+  qr_location_id?: string | null;
+  ref_order_id?: string | null;
+}
+
+export function getPublicOrderStatus(slug: string, id: string) {
+  return apiGet<PublicOrderStatusResponse>(`/public/${encodeURIComponent(slug)}/orders/${encodeURIComponent(id)}/status`);
 }
 
 // src/core/api/public.ts
@@ -240,4 +264,17 @@ export async function createMpPreference(
   if (!res.ok) throw new Error(data?.error || `MP PREF ${res.status}`);
 
   return data as CreateMpPreferenceResponse;
+}
+
+export async function createPublicCall(slug: string, payload: { qr_location_id: string }) {
+  const base = (process.env.EXPO_PUBLIC_API_BASE ?? "").replace(/\/$/, "");
+  const res = await fetch(`${base}/public/${slug}/calls`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  const json = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(json?.error || "Error creando llamada");
+  return json as { ok: true; call_id: string };
 }

@@ -1,43 +1,51 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { View, Text } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 
-export type OrderStatus = "pending" | "preparing" | "ready" | "completed";
+export type OrderStatus = 'entrante' | 'preparacion' | 'retirar' | 'enviar' | 'terminadas';
 
 interface OrderProgressBarProps {
-  status: OrderStatus;
+  status: OrderStatus | [] | null;
+  deliveryLocation: string | [] | null;
 }
 
-const steps = [
-  { id: "pending" as const, label: "Pendiente", icon: "clock" as const },
-  { id: "preparing" as const, label: "Preparando", icon: "coffee" as const }, // o "tool"
-  { id: "ready" as const, label: "Listo", icon: "package" as const },
-  { id: "completed" as const, label: "Entregado", icon: "check" as const },
-];
 
-const getProgressValue = (status: OrderStatus): number => {
-  switch (status) {
-    case "pending":
-      return 0;
-    case "preparing":
-      return 33;
-    case "ready":
-      return 66;
-    case "completed":
-      return 100;
-    default:
-      return 0;
-  }
-};
 
-export function OrderProgressBar({ status }: OrderProgressBarProps) {
+
+
+export function OrderProgressBar({ status, deliveryLocation }: OrderProgressBarProps) {
+  const delivery = deliveryLocation === ('envio' || 'retiro_envio') ? 'enviar' : 'retirar';
+  const icon = delivery === 'enviar' ? 'directions-bike' : 'local-restaurant';
+  const steps = [
+    { id: "entrante" as const, label: "Pendiente", icon: "access-time" as const },
+    { id: "preparacion" as const, label: "Preparando", icon: "soup-kitchen" as const }, // o "tool"
+    { id: delivery, label: "Listo", icon: icon },
+    { id: "terminadas" as const, label: "Entregado", icon: "check" as const },
+  ];
+    const getProgressValue = (status: OrderStatus | [] | null): number => {
+    switch (status) {
+      case "entrante":
+        return 0;
+      case "preparacion":
+        return 33;
+      case "retirar":
+        return 66;
+      case "enviar":
+        return 66;
+      case "terminadas":
+        return 100;
+      default:
+        return 0;
+    }
+  };
+
   const currentIndex = useMemo(
     () => steps.findIndex((s) => s.id === status),
     [status]
   );
 
   const progressValue = useMemo(() => getProgressValue(status), [status]);
-
+  
   return (
     <View className={"w-full gap-3"}>
       {/* Steps */}
@@ -55,7 +63,7 @@ export function OrderProgressBar({ status }: OrderProgressBarProps) {
                   ${isCurrent ? "border-2 border-primary" : ""}`
                 }
               >
-                <Feather
+                <MaterialIcons
                   // @ts-ignore
                   name={step.icon}
                   size={16}
