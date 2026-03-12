@@ -23,8 +23,6 @@ const plans = [
 		features: [
 			"Todo del Plan Básico",
 			"Hasta 20 mesas",
-			"Carga con Excel",
-			"Comunicación cliente",
 			"Soporte prioritario",
 		],
 		highlighted: true,
@@ -36,9 +34,7 @@ const plans = [
 		features: [
 			"Todo del Plan Pro",
 			"Mesas ilimitadas",
-			"Funciones avanzadas",
 			"Soporte dedicado",
-			"Personalización",
 		],
 		highlighted: false,
 	},
