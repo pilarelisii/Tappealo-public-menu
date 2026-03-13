@@ -29,13 +29,12 @@ const features = [
 			"QR único por mesa",
 			"Gestión de múltiples mesas",
 			"Identificación por mesa",
-			"Organización del flujo",
 		],
 	},
 	{
 		icon: MessageSquare,
 		title: "Comunicación cliente – restaurante",
-		desc: "Los clientes se comunican directamente con el personal. Llamar al mozo, pedir la cuenta o enviar mensajes.",
+		desc: "Los clientes se comunican directamente con el personal. Llamar al mozo, pedir un plato, etc.",
 		bullets: [
 			"Servicio más rápido",
 			"Mejor experiencia",
@@ -66,7 +65,7 @@ const features = [
 	{
 		icon: Globe,
 		title: "Página propia para cada restaurante",
-		desc: "Cada restaurante tiene su propia página: tappealo.com/nombre-del-restaurante.",
+		desc: "Cada restaurante tiene su propia página y su propio subdominio.",
 		bullets: [
 			"URL personalizada",
 			"Acceso por link o QR",
