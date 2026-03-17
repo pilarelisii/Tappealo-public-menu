@@ -7,6 +7,7 @@ import { AppImage } from "@/components/ui/AppImage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { PublicPromotion } from "@/src/core/api/public";
+import { useLanguageContext } from "@/src/i18n/LanguageProvider";
 
 interface PromoItemProps {
   promo: PublicPromotion;
@@ -20,9 +21,10 @@ function formatARS(n: number) {
 }
 
 export function PromoItem({ active, promo, catalog, onAddPromo }: PromoItemProps) {
+  const { language, changeLanguage, t, ready } = useLanguageContext()
   const getProductName = (productId: string) => {
     const numericId = Number(productId);
-    return catalog.find((p) => p.id === numericId)?.name || "Producto";
+    return catalog.find((p) => p.id === numericId)?.name || t.product;
   };
 
   const includeText = useMemo(() => {
@@ -34,7 +36,7 @@ export function PromoItem({ active, promo, catalog, onAddPromo }: PromoItemProps
       .map((it) => `${it.quantity}x ${getProductName(it.product_id)}`)
       .join(" · ");
 
-    return `Incluye: ${base}${items.length > 3 ? " · ..." : ""}`;
+    return `${t.includes}: ${base}${items.length > 3 ? " · ..." : ""}`;
   }, [promo.items, catalog]);
 
   return (
@@ -72,7 +74,7 @@ export function PromoItem({ active, promo, catalog, onAddPromo }: PromoItemProps
         {active && (
           <Button variant="menu" className="w-full flex-row items-center justify-center gap-2" onPress={() => onAddPromo(promo)}>
             <Feather name="plus" size={18} />
-            <Text className="font-semibold">Agregar promo</Text>
+            <Text className="font-semibold">{t.addPromo}</Text>
           </Button>
         )}
       </View>

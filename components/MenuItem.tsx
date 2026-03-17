@@ -5,6 +5,7 @@ import { AppImage } from "./ui/AppImage";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
+import { useLanguageContext } from "@/src/i18n/LanguageProvider";
 
 export interface MenuItemType {
   id: number;
@@ -24,6 +25,7 @@ interface MenuItemProps {
 }
 
 export function MenuItem({ item, onAddToCart, cartQuantity = 0, active }: MenuItemProps) {
+  const { language, changeLanguage, t, ready } = useLanguageContext()
   return (
     <Card className="overflow-hidden border-border">
       <CardContent className="p-4 pt-4">
@@ -64,7 +66,7 @@ export function MenuItem({ item, onAddToCart, cartQuantity = 0, active }: MenuIt
                   className="flex-row items-center gap-2"
                 >
                   <Feather name="plus" size={16} />
-                  <Text className="font-semibold">Agregar</Text>
+                  <Text className="font-semibold">{t.add}</Text>
                 </Button>
                  )}
                 

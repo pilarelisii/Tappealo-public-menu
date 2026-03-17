@@ -2,6 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import { useEffect, useMemo, useState } from "react";
 import { Text, View } from "react-native";
 import { Button } from "./ui/button";
+import { useLanguageContext } from "@/src/i18n/LanguageProvider";
 
 export type OrderStatus =
 	| "entrante"
@@ -56,7 +57,7 @@ export function CartNotification({
 	orderStatusById,
 }: CartNotificationProps) {
 	const [isAnimating, setIsAnimating] = useState(false);
-
+	const { language, changeLanguage, t, ready } = useLanguageContext()
 	// animación solo cuando cambia cantidad de items del carrito
 	useEffect(() => {
 		if (totalItems > 0) {
@@ -124,8 +125,8 @@ export function CartNotification({
 
 								<View className="min-w-0 flex">
 									<Text className="text-md font-semibold text-foreground">
-										Tienes {activeOrders.length}{" "}
-										{activeOrders.length === 1 ? "pedido" : "pedidos"} en curso
+										{t.youHave} {activeOrders.length}{" "}
+										{activeOrders.length === 1 ? t.activeOrderSingle : t.activeOrderPlural} 
 									</Text>
 
 									{latestOrder ? (
@@ -133,7 +134,7 @@ export function CartNotification({
 											className="text-sm text-foreground opacity-70"
 											numberOfLines={1}
 										>
-											Último: {latestOrder.ref_order_id} ·{" "}
+											{t.latest}: {latestOrder.ref_order_id} ·{" "}
 											{statusLabel(latestStatus)}
 										</Text>
 									) : null}
@@ -147,7 +148,7 @@ export function CartNotification({
 							className="px-8 py-4 rounded-xl shrink-0"
 						>
 							<Text className="text-base font-semibold text-foreground">
-								{showCart ? "Ir al carrito" : "Ver pedidos"}
+								{showCart ? t.goToCart : t.viewOrders}
 							</Text>
 						</Button>
 					</View>

@@ -11,6 +11,7 @@ import { Feather } from "@expo/vector-icons";
 
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
+import { useLanguageContext } from "@/src/i18n/LanguageProvider";
 
 interface RatingModalProps {
 	isOpen: boolean;
@@ -19,7 +20,7 @@ interface RatingModalProps {
 }
 
 export function CallButtonModal({ isOpen, onClose, onSubmit }: RatingModalProps) {
-
+	const { language, changeLanguage, t, ready } = useLanguageContext()
 	return (
 		<Modal
 			visible={isOpen}
@@ -33,17 +34,17 @@ export function CallButtonModal({ isOpen, onClose, onSubmit }: RatingModalProps)
 			{/* Dialog */}
 			<View className="absolute left-4 right-4 top-52 mx-auto max-w-md rounded-2xl gap-4 bg-white p-10 border border-black/10">
 				<Text className="text-center text-xl font-semibold text-foreground">
-					¿Seguro que querés llamar al mozo?
+					{t.callWaiterConfirm}
 				</Text>
 
 				<View className="mt-5 gap-6">
 					<View className="flex-row gap-3">
 						<Button variant="outline" className="flex-1" onPress={onClose}>
-							<Text className="font-semibold">Cancelar</Text>
+							<Text className="font-semibold">{t.cancel}</Text>
 						</Button>
 
 						<Button variant="default" className="flex-1" onPress={onSubmit}>
-							<Text className="font-semibold text-white">Si, llamar</Text>
+							<Text className="font-semibold text-white">{t.yesCall}</Text>
 						</Button>
 					</View>
 				</View>

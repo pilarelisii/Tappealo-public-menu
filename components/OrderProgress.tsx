@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 import { View, Text } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useLanguageContext } from "@/src/i18n/LanguageProvider";
 
 export type OrderStatus = 'entrante' | 'preparacion' | 'retirar' | 'enviar' | 'terminadas';
 
@@ -14,12 +15,13 @@ interface OrderProgressBarProps {
 
 
 export function OrderProgressBar({ status, deliveryLocation }: OrderProgressBarProps) {
+  const { language, changeLanguage, t, ready } = useLanguageContext()
   const delivery = (deliveryLocation === 'envio') ? 'enviar' : 'retirar';
   const steps = [
-    { id: "entrante" as const, label: "Pendiente", icon: "access-time" as const },
-    { id: "preparacion" as const, label: "Preparando", icon: "soup-kitchen" as const }, // o "tool"
-    { id: delivery, label: "Listo", icon: "local-restaurante" },
-    { id: "terminadas" as const, label: "Entregado", icon: "check" as const },
+    { id: "entrante" as const, label: t.pending, icon: "access-time" as const },
+    { id: "preparacion" as const, label: t.preparing, icon: "soup-kitchen" as const }, // o "tool"
+    { id: delivery, label: t.ready, icon: "local-restaurante" },
+    { id: "terminadas" as const, label: t.delivered, icon: "check" as const },
   ];
     const getProgressValue = (status: OrderStatus | [] | null): number => {
     switch (status) {

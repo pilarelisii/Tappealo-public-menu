@@ -43,6 +43,8 @@ import {
 	type PublicVenue,
 } from "@/src/core/api/public";
 import { OrderStatus } from "@/src/core/types";
+import { useLanguage } from "@/hooks/useLanguages";
+
 
 // helpers
 function expandCartToOrderItems(cart: CartLine[], catalog: MenuItemType[]) {
@@ -241,7 +243,7 @@ export default function Index() {
 		payment?: string;
 		slug?: string;
 	}>();
-
+	const { language, changeLanguage, t, ready } = useLanguage();
 	const [mpPublicKey, setMpPublicKey] = useState<string | null>(null);
 	const [slug, setSlug] = useState<string | null>(null);
 
@@ -281,7 +283,7 @@ export default function Index() {
 
 	const categoriesWithPromos = useMemo(() => {
 		if (promotions.length === 0) return categories;
-		return ["PROMOCIONES", ...categories];
+		return [t.promotions, ...categories];
 	}, [categories, promotions.length]);
 
 	// resolve slug
@@ -838,31 +840,32 @@ export default function Index() {
 					</View>
 					{params.utm_campaign !== undefined && (
 						<View className="absolute right-4 top-2">
-						<Button
-							variant="menu"
-							size="icon"
-							className="relative"
-							onPress={() => setIsCartOpen(true)}
-						>
-							<Feather
-								name="shopping-cart"
-								size={18}
-								className="text-foreground"
-							/>
-							{totalItems > 0 && (
-								<View className="absolute -top-2 -right-2">
-									<Badge
-										variant="secondary"
-										className="h-5 w-5 items-center justify-center p-0"
-									>
-										<Text className="text-xs font-semibold">{totalItems}</Text>
-									</Badge>
-								</View>
-							)}
-						</Button>
-					</View>
+							<Button
+								variant="menu"
+								size="icon"
+								className="relative"
+								onPress={() => setIsCartOpen(true)}
+							>
+								<Feather
+									name="shopping-cart"
+									size={18}
+									className="text-foreground"
+								/>
+								{totalItems > 0 && (
+									<View className="absolute -top-2 -right-2">
+										<Badge
+											variant="secondary"
+											className="h-5 w-5 items-center justify-center p-0"
+										>
+											<Text className="text-xs font-semibold">
+												{totalItems}
+											</Text>
+										</Badge>
+									</View>
+								)}
+							</Button>
+						</View>
 					)}
-					
 				</View>
 
 				{featured?.length > 0 && (
@@ -881,7 +884,7 @@ export default function Index() {
 						<View className="flex-row gap-2 items-center">
 							{(categoriesWithPromos.length
 								? categoriesWithPromos
-								: ["CARGANDO..."]
+								: [`${t.loading}"..."`]
 							).map((cat) => {
 								const active = selectedCategory === cat;
 								return (
@@ -914,9 +917,11 @@ export default function Index() {
 				{/* Disabled venue */}
 				{venue && !venue.service_active && (
 					<View className="px-4 py-10 items-center">
-						<Text className="text-lg font-semibold">Servicio desactivado</Text>
+						<Text className="text-lg font-semibold">
+							{t.serviceInactiveTitle}
+						</Text>
 						<Text className="opacity-70 mt-2">
-							Este comercio no está recibiendo pedidos.
+							{t.serviceInactiveDescription}
 						</Text>
 					</View>
 				)}
@@ -931,7 +936,7 @@ export default function Index() {
 							}}
 						>
 							<Text className="text-2xl text-foreground font-bold mb-6">
-								PROMOCIONES
+								{t.promotions}
 							</Text>
 
 							<View className="gap-4">
@@ -993,10 +998,13 @@ export default function Index() {
 					<Text className="text-sm opacity-70">powered by Tappealo</Text>
 				</View>
 			</ScrollView>
-			
-			{deliveryLocationName === 'en_lugar' &&
-				<CallButton onCallButton={() => setCallModal(true)} active={totalItems > 0}/>
-			}
+
+			{deliveryLocationName === "en_lugar" && (
+				<CallButton
+					onCallButton={() => setCallModal(true)}
+					active={totalItems > 0}
+				/>
+			)}
 
 			<RightDrawer open={isCartOpen} onClose={() => setIsCartOpen(false)}>
 				<ShoppingCart
@@ -1025,7 +1033,11 @@ export default function Index() {
 				qrLocationId={checkoutQrLocationId}
 				refOrderId={checkoutRefOrderId}
 			/>
-			<CallButtonModal isOpen={callModal} onClose={() => setCallModal(false)} onSubmit={handleCallWaiter}/>
+			<CallButtonModal
+				isOpen={callModal}
+				onClose={() => setCallModal(false)}
+				onSubmit={handleCallWaiter}
+			/>
 
 			{!isCartOpen && !isCheckoutOpen && (
 				<CartNotification

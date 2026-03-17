@@ -3,6 +3,7 @@ import { Modal, Pressable, View, Text, Platform, Linking } from "react-native";
 import { Entypo } from "@expo/vector-icons";
 import EvilIcons from "@expo/vector-icons/EvilIcons";
 import { Button } from "./ui/button";
+import { useLanguageContext } from "@/src/i18n/LanguageProvider";
 
 // ✅ Solo se importa en native (no rompe web)
 let WebView: any = null;
@@ -95,6 +96,7 @@ export function InfoModal({
   venueName,
   address,
 }: InfoModalProps) {
+	const { language, changeLanguage, t, ready } = useLanguageContext()
   const socialUrl = useMemo(() => safeUrl(social_link), [social_link]);
 
   // ✅ si existe embed guardado, usamos ese
@@ -157,9 +159,20 @@ export function InfoModal({
 			{/* Dialog */}
 			<View className="absolute left-4 right-4 top-24 mx-auto max-w-md rounded-2xl bg-white p-5 border border-black/10">
 				<Text className="text-center text-xl font-semibold text-foreground">
-					Información
+					{t.information}
 				</Text>
 
+				<View className="mt-6 w-[20%]">
+					
+						<Button
+							variant="menu"
+							size="sm"
+							onPress={() => changeLanguage(language === "es" ? "en" : "es")}
+						>
+							<Text>{language === "es" ? "EN" : "ES"}</Text>
+						</Button>
+					
+				</View>
 				<View className="mt-5 gap-4">
 					{/* Instagram */}
 					<View className="rounded-xl p-3 bg-black/5 flex-row items-center justify-between">
@@ -174,7 +187,7 @@ export function InfoModal({
 							onPress={() => openExternal(socialUrl)}
 						>
 							<Text className="font-semibold">
-								{socialUrl ? "Abrir" : "No disponible"}
+								{socialUrl ? t.open : t.notAvailable}
 							</Text>
 						</Button>
 					</View>
@@ -183,7 +196,9 @@ export function InfoModal({
 					<View className="rounded-xl p-3 bg-black/5 flex-row items-center justify-between">
 						<View className="flex-row items-center gap-2">
 							<Entypo name="phone" size={18} color="#111827" />
-							<Text className="text-foreground font-medium">Telefono</Text>
+							<Text className="text-foreground font-medium">
+								{t.notAvailable}
+							</Text>
 						</View>
 
 						<Button
@@ -192,15 +207,16 @@ export function InfoModal({
 							onPress={() => callPhone(phone)}
 						>
 							<Text className="font-semibold">
-								{phone ? "Llamar" : "No disponible"}
+								{phone ? t.call : t.notAvailable}
 							</Text>
 						</Button>
 					</View>
+
 					{/* Dirección (opcional, si NO querés mostrarla, borrá este bloque) */}
 					<View className="rounded-xl p-3 bg-black/5">
 						<View className="flex-row items-center gap-2 mb-2">
 							<EvilIcons name="location" size={22} color="#111827" />
-							<Text className="text-foreground font-semibold">Dirección</Text>
+							<Text className="text-foreground font-semibold">{t.address}</Text>
 						</View>
 
 						{!!addressLine1 && (
@@ -212,7 +228,7 @@ export function InfoModal({
 
 						{!addressLine1 && !addressLine2 && (
 							<Text className="text-foreground opacity-70">
-								Sin dirección cargada
+								{t.noAddressLoaded}
 							</Text>
 						)}
 					</View>
@@ -220,7 +236,7 @@ export function InfoModal({
 					{/* Mapa */}
 					<View className="rounded-xl overflow-hidden border border-black/10">
 						<View className="px-3 py-2 bg-black/5 flex-row items-center justify-between">
-							<Text className="text-foreground font-semibold">Mapa</Text>
+							<Text className="text-foreground font-semibold">{t.map}</Text>
 
 							<Button
 								variant="outline"
@@ -228,7 +244,7 @@ export function InfoModal({
 								onPress={() => openExternal(mapsOpenUrl)}
 							>
 								<Text className="font-semibold">
-									{mapsOpenUrl ? "Abrir Maps" : "No disponible"}
+									{mapsOpenUrl ? t.openMaps : t.notAvailable}
 								</Text>
 							</Button>
 						</View>
@@ -258,31 +274,30 @@ export function InfoModal({
 							) : (
 								<View className="p-4">
 									<Text className="text-foreground opacity-70">
-										No se pudo cargar el mapa.
+										{t.mapLoadError}
 									</Text>
 								</View>
 							)
 						) : isMapsShortLink(location_link) ? (
 							<View className="p-4">
 								<Text className="text-foreground font-medium mb-2">
-									📍 Ubicación disponible
+									📍 {t.locationAvailable}
 								</Text>
 								<Text className="text-foreground opacity-70 mb-3">
-									Este link corto de Google Maps no se puede embeber. Abrilo en
-									Maps.
+									{t.shortMapsNotEmbeddable}
 								</Text>
 
 								<Button
 									variant="menu"
 									onPress={() => openExternal(location_link)}
 								>
-									<Text className="font-semibold">Abrir en Google Maps</Text>
+									<Text className="font-semibold">{t.openInGoogleMaps}</Text>
 								</Button>
 							</View>
 						) : (
 							<View className="p-4">
 								<Text className="text-foreground opacity-70">
-									No hay un link válido para mostrar el mapa.
+									{t.noValidMapLink}
 								</Text>
 							</View>
 						)}
@@ -290,7 +305,7 @@ export function InfoModal({
 
 					{/* Cerrar */}
 					<Button variant="outline" onPress={onClose}>
-						<Text className="font-semibold">Cerrar</Text>
+						<Text className="font-semibold">{t.close}</Text>
 					</Button>
 				</View>
 			</View>

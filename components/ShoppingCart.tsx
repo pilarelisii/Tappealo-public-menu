@@ -6,6 +6,7 @@ import { Badge } from "./ui/badge";
 import { AppImage } from "./ui/AppImage";
 import type { MenuItemType } from "./MenuItem";
 import { OrderProgressBar } from "./OrderProgress";
+import { useLanguageContext } from "@/src/i18n/LanguageProvider";
 
 type OrderStatus = 'entrante' | 'preparacion' | 'retirar' | 'enviar' | 'terminadas';
 type ActiveOrder = {
@@ -98,6 +99,7 @@ export function ShoppingCart({
   onClose,
   onAddItem,
 }: ShoppingCartProps) {
+	const { language, changeLanguage, t, ready } = useLanguageContext()
   const total = items.reduce((sum, it) => sum + it.price * it.quantity, 0);
   const totalItems = items.reduce((sum, it) => sum + it.quantity, 0);
 
@@ -123,7 +125,7 @@ export function ShoppingCart({
 						<Button variant="ghost" size="icon" onPress={onClose}>
 							<Feather name="arrow-left" size={22} />
 						</Button>
-						<Text className="text-2xl font-bold text-foreground">Carrito</Text>
+						<Text className="text-2xl font-bold text-foreground">{t.cart}</Text>
 					</View>
 				</View>
 				{activeOrders.length > 0 && (
@@ -134,11 +136,11 @@ export function ShoppingCart({
 								className="p-3 rounded-xl border border-black/10"
 							>
 								<Text className="font-bold text-foreground m-3">
-									Pedido {o.ref_order_id} en curso
+									{t.order} {o.ref_order_id} {t.inProgress}
 								</Text>
 
 								<OrderProgressBar
-									status={orderStatusById[o.id] ?? "entrante"}
+									status={orderStatusById[o.id] ?? t.incoming}
 									deliveryLocation={deliveryLocation}
 								/>
 							</View>
@@ -148,7 +150,7 @@ export function ShoppingCart({
 
 				<View className="flex-1 items-center justify-center">
 					<Text className="opacity-70 text-foreground">
-						Tu carrito está vacío
+						{t.emptyCart}
 					</Text>
 				</View>
 			</View>
@@ -164,7 +166,7 @@ export function ShoppingCart({
 						<Button variant="ghost" size="icon" onPress={onClose}>
 							<Feather name="arrow-left" size={22} />
 						</Button>
-						<Text className="text-2xl font-bold text-foreground">Carrito</Text>
+						<Text className="text-2xl font-bold text-foreground">{t.cart}</Text>
 					</View>
 
 					<Badge variant="secondary" className="px-3 py-1">
@@ -179,11 +181,11 @@ export function ShoppingCart({
 								className="p-3 rounded-xl border border-black/10"
 							>
 								<Text className="font-semibold text-foreground m-3">
-									Pedido {o.ref_order_id} en curso
+									{t.order} {o.ref_order_id} {t.inProgress}
 								</Text>
 
 								<OrderProgressBar
-									status={orderStatusById[o.id] ?? "entrante"}
+									status={orderStatusById[o.id] ?? t.incoming}
 									deliveryLocation={deliveryLocation}
 								/>
 							</View>
@@ -273,7 +275,7 @@ export function ShoppingCart({
 					{suggestedItems.length > 0 ? (
 						<View className="pt-6 border-t border-black/10 mt-6">
 							<Text className="text-lg font-bold mb-3 text-foreground">
-								Complementá tu orden
+								{t.completeOrder}
 							</Text>
 
 							<View className="gap-3">
@@ -329,7 +331,7 @@ export function ShoppingCart({
 			{/* Footer */}
 			<View className="border-t border-black/10 pt-4 gap-4">
 				<View className="flex-row justify-between">
-					<Text className="text-xl font-bold text-foreground">Total:</Text>
+					<Text className="text-xl font-bold text-foreground">{t.total}:</Text>
 					<Text className="text-xl font-bold text-foreground">
 						{formatARS(total)}
 					</Text>
@@ -341,7 +343,7 @@ export function ShoppingCart({
 					className="w-full"
 					variant="menu"
 				>
-					<Text className="font-semibold">Realizar Pedido</Text>
+					<Text className="font-semibold">{t.placeOrder}</Text>
 				</Button>
 			</View>
 		</View>

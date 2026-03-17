@@ -8,6 +8,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
+import { useLanguageContext } from "@/src/i18n/LanguageProvider";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -81,6 +82,7 @@ export function CheckoutModal({
   refOrderId,
   deliveryLocationName,
 }: CheckoutModalProps) {
+  const { language, changeLanguage, t, ready } = useLanguageContext()
   const [notes, setNotes] = useState("");
   const [countryCode, setCountryCode] = useState("54");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -222,27 +224,27 @@ export function CheckoutModal({
 									</View>
 								</View>
 								<Text className="text-3xl font-bold mb-4 text-center text-foreground">
-									¡Estamos preparando tu pedido!
+									¡{t.preparingOrder}!
 								</Text>
 								{deliveryLocation === "envio" ||
 									(deliveryLocation === "retiro_envio" && (
 										<Text className="text-lg text-center mb-2 text-foreground">
-											Te contactaremos para coordinar la entrega
+											{t.deliveryContact}
 										</Text>
 									))}
 								{deliveryLocation === "retiro" && (
 									<Text className="text-lg text-center mb-2 text-foreground">
-										Te contactaremos para coordinar el retiro
+										{t.pickupContact}
 									</Text>
 								)}
 								{deliveryLocation === "en_lugar" && (
 									<Text className="text-lg text-center mb-2 text-foreground">
-										El pedido sera entregado en tu mesa
+										{t.tableDelivery}
 									</Text>
 								)}
 
 								<Text className="text-xl font-semibold text-center mb-8 text-foreground">
-									Gracias por tu compra
+									{t.thanksPurchase}
 								</Text>
 								<Button
 									size="lg"
@@ -254,7 +256,7 @@ export function CheckoutModal({
 										onClose();
 									}}
 								>
-									<Text className="font-semibold">Aceptar</Text>
+									<Text className="font-semibold">{t.accept}</Text>
 								</Button>
 							</View>
 						) : !showPaymentMethod ? (
@@ -265,7 +267,7 @@ export function CheckoutModal({
 											<Feather name="arrow-left" size={22} />
 										</Button>
 										<Text className="text-2xl font-bold text-foreground">
-											Confirmar Pedido
+											{t.confirmOrder}
 										</Text>
 									</View>
 								</View>
@@ -273,7 +275,7 @@ export function CheckoutModal({
 								<View className="gap-6">
 									<View className="gap-4">
 										<Text className="font-semibold text-foreground">
-											Resumen del Pedido
+											{t.orderSummary}
 										</Text>
 
 										{items.map((it) => (
@@ -284,7 +286,7 @@ export function CheckoutModal({
 												<View className="flex-1 pr-3">
 													<Text className="font-medium">{it.name}</Text>
 													<Text className="text-sm opacity-70">
-														Cantidad: {it.quantity}
+														{t.quantity}: {it.quantity}
 													</Text>
 												</View>
 												<Text className="text-foreground">
@@ -294,7 +296,7 @@ export function CheckoutModal({
 										))}
 
 										<View className="flex-row items-center justify-between pt-4 border-t border-black/10">
-											<Text>Total:</Text>
+											<Text>{t.total}:</Text>
 											<Text className="text-lg font-bold text-primary">
 												{formatARS(total)}
 											</Text>
@@ -303,7 +305,7 @@ export function CheckoutModal({
 
 									<View className="gap-4">
 										<View>
-											<Label>Número de Celular *</Label>
+											<Label>{t.phoneNumber} *</Label>
 											<View className="flex-row gap-2 mt-1">
 												<Pressable
 													className="h-10 px-3 rounded-md border border-black/10 bg-white justify-center"
@@ -331,7 +333,7 @@ export function CheckoutModal({
 													placeholder={
 														countryCode === "54"
 															? "11 1234-5678"
-															: "Número sin código de país"
+															: t.phoneWithoutCountryCode
 													}
 													value={phoneNumber}
 													onChangeText={handlePhoneChange}
@@ -340,7 +342,7 @@ export function CheckoutModal({
 												/>
 											</View>
 											<Text className="text-xs opacity-70 mt-1">
-												Aquí solo te notificaremos sobre tu pedido
+												{t.phoneHelp}
 											</Text>
 											{phoneError ? (
 												<Text className="text-xs text-red-600 mt-1">
@@ -350,7 +352,7 @@ export function CheckoutModal({
 										</View>
 
 										<View>
-											<Label>Nombre</Label>
+											<Label>{t.name}</Label>
 											<Input
 												placeholder="Tu nombre"
 												value={customerName}
@@ -359,9 +361,9 @@ export function CheckoutModal({
 										</View>
 
 										<View>
-											<Label>Notas Especiales (Opcional)</Label>
+											<Label>{t.specialNotesOptional}</Label>
 											<Textarea
-												placeholder="Alergias, preferencias de cocción, etc."
+												placeholder={t.specialNotesPlaceholder}
 												value={notes}
 												onChangeText={setNotes}
 												numberOfLines={3}
@@ -376,7 +378,7 @@ export function CheckoutModal({
 											disabled={!phoneNumber || !!phoneError}
 											onPress={() => setShowPaymentMethod(true)}
 										>
-											<Text className="font-semibold">Continuar</Text>
+											<Text className="font-semibold">{t.continue}</Text>
 										</Button>
 
 										<Button
@@ -384,7 +386,7 @@ export function CheckoutModal({
 											className="w-full"
 											onPress={onClose}
 										>
-											<Text className="font-semibold">Cancelar</Text>
+											<Text className="font-semibold">{t.cancel}</Text>
 										</Button>
 									</View>
 								</View>
@@ -400,7 +402,7 @@ export function CheckoutModal({
 										>
 											<Feather name="arrow-left" size={22} />
 										</Button>
-										<Text className="text-2xl font-bold">Método de pago</Text>
+										<Text className="text-2xl font-bold">{t.paymentMethod}</Text>
 									</View>
 								</View>
 
@@ -413,7 +415,7 @@ export function CheckoutModal({
 								<View className="gap-6">
 									<View className="pt-4 border-t border-black/10">
 										<View className="flex-row justify-between items-center">
-											<Text className="text-lg font-bold">Total a pagar:</Text>
+											<Text className="text-lg font-bold">{t.totalToPay}:</Text>
 											<Text className="text-lg font-bold text-foreground">
 												{formatARS(total)}
 											</Text>
@@ -428,7 +430,7 @@ export function CheckoutModal({
 												className="w-full"
 												onPress={() => confirmOrder("efectivo")}
 											>
-												<Text className="font-semibold">Efectivo en caja</Text>
+												<Text className="font-semibold">{t.cashAtCounter}</Text>
 											</Button>
 											</>
 									)}
@@ -436,7 +438,7 @@ export function CheckoutModal({
 											{Platform.OS === "web" ? (
 												<View className="gap-2">
 													<Text className="text-base font-semibold">
-														Mercado Pago
+														{t.mercadoPago}
 													</Text>
 													<Button
 														variant="menu"
@@ -452,12 +454,12 @@ export function CheckoutModal({
 													>
 														<Text className="font-semibold">
 															{mpLoading
-																? "Redirigiendo..."
-																: "Pagar con Mercado Pago"}
+																? t.redirecting
+																: t.payWithMercadoPago}
 														</Text>
 													</Button>
 													<Text className="text-xs opacity-70">
-														Te vamos a redirigir al checkout de Mercado Pago.
+														{t.mercadoPagoRedirectDescription}
 													</Text>
 												</View>
 											) : null}
@@ -468,7 +470,7 @@ export function CheckoutModal({
 										className="w-full"
 										onPress={() => setShowPaymentMethod(false)}
 									>
-										<Text className="font-semibold">Volver</Text>
+										<Text className="font-semibold">{t.back}</Text>
 									</Button>
 								</View>
 							</>
