@@ -1,24 +1,25 @@
-import React, { useMemo } from "react";
-import { View, Text } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import React, { useMemo } from "react";
+import { Text, View } from "react-native";
 
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { AppImage } from "@/components/ui/AppImage";
-import type { PublicPromotion } from "@/src/core/api/public";
 import type { MenuItemType } from "@/components/MenuItem";
+import { AppImage } from "@/components/ui/AppImage";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import type { PublicPromotion } from "@/src/core/api/public";
 
 interface PromoItemProps {
   promo: PublicPromotion;
   catalog: MenuItemType[];
   onAddPromo: (promo: PublicPromotion) => void;
+  active: boolean;  
 }
 
 function formatARS(n: number) {
   return `$${Math.round(n).toLocaleString("es-AR")}`;
 }
 
-export function PromoItem({ promo, catalog, onAddPromo }: PromoItemProps) {
+export function PromoItem({ active, promo, catalog, onAddPromo }: PromoItemProps) {
   const getProductName = (productId: string) => {
     const numericId = Number(productId);
     return catalog.find((p) => p.id === numericId)?.name || "Producto";
@@ -68,11 +69,12 @@ export function PromoItem({ promo, catalog, onAddPromo }: PromoItemProps) {
         {includeText ? (
           <Text className="text-xs text-black/70">{includeText}</Text>
         ) : null}
-
-        <Button variant="menu" className="w-full flex-row items-center justify-center gap-2" onPress={() => onAddPromo(promo)}>
-          <Feather name="plus" size={18} />
-          <Text className="font-semibold">Agregar promo</Text>
-        </Button>
+        {active && (
+          <Button variant="menu" className="w-full flex-row items-center justify-center gap-2" onPress={() => onAddPromo(promo)}>
+            <Feather name="plus" size={18} />
+            <Text className="font-semibold">Agregar promo</Text>
+          </Button>
+        )}
       </View>
     </View>
   );

@@ -1,10 +1,10 @@
-import { View, Text } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { Text, View } from "react-native";
 
-import { Card, CardContent } from "./ui/card";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
 import { AppImage } from "./ui/AppImage";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import { Card, CardContent } from "./ui/card";
 
 export interface MenuItemType {
   id: number;
@@ -20,9 +20,10 @@ interface MenuItemProps {
   item: MenuItemType;
   onAddToCart: (item: MenuItemType) => void;
   cartQuantity?: number;
+  active: boolean;
 }
 
-export function MenuItem({ item, onAddToCart, cartQuantity = 0 }: MenuItemProps) {
+export function MenuItem({ item, onAddToCart, cartQuantity = 0, active }: MenuItemProps) {
   return (
     <Card className="overflow-hidden border-border">
       <CardContent className="p-4 pt-4">
@@ -54,6 +55,8 @@ export function MenuItem({ item, onAddToCart, cartQuantity = 0 }: MenuItemProps)
 
             <View className="flex-row justify-end mt-2">
               <View className="relative">
+                {active && (
+                  
                 <Button
                   variant="menu"
                   size="sm"
@@ -63,6 +66,8 @@ export function MenuItem({ item, onAddToCart, cartQuantity = 0 }: MenuItemProps)
                   <Feather name="plus" size={16} />
                   <Text className="font-semibold">Agregar</Text>
                 </Button>
+                 )}
+                
 
                 {cartQuantity > 0 ? (
                   <Badge className="absolute -top-2 -right-2 h-5 w-5 items-center justify-center p-0 bg-green-500 border border-green-600">

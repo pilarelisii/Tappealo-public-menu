@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { View, Text } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { useEffect, useMemo, useState } from "react";
+import { Text, View } from "react-native";
 import { Button } from "./ui/button";
 
 export type OrderStatus =
@@ -122,7 +122,7 @@ export function CartNotification({
 									<Feather name="clock" size={22} color="#6B7280" />
 								</View>
 
-								<View className="min-w-0">
+								<View className="min-w-0 flex">
 									<Text className="text-md font-semibold text-foreground">
 										Tienes {activeOrders.length}{" "}
 										{activeOrders.length === 1 ? "pedido" : "pedidos"} en curso
@@ -144,7 +144,7 @@ export function CartNotification({
 						<Button
 							variant="menu"
 							onPress={onOpenCart}
-							className="px-8 py-4 rounded-xl"
+							className="px-8 py-4 rounded-xl shrink-0"
 						>
 							<Text className="text-base font-semibold text-foreground">
 								{showCart ? "Ir al carrito" : "Ver pedidos"}
