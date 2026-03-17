@@ -1039,6 +1039,7 @@ export default function Index() {
 					onClose={() => setInfoModal(false)}
 					location_link={venue?.location_link}
 					social_link={venue?.social_link}
+					phone={venue?.phone}
 					address={{ address_1: venue?.address_1, address_2: venue?.address_2 }}
 				/>
 			)}

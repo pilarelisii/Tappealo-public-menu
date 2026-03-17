@@ -29,6 +29,9 @@ interface InfoModalProps {
     address_1?: string | null;
     address_2?: string | null;
   };
+
+  // (si querés seguir mostrando phone, lo dejamos)
+  phone?: string | null;
 }
 
 function safeUrl(u?: string | null) {
@@ -88,6 +91,7 @@ export function InfoModal({
   social_link,
   location_link,
   location_embed,
+  phone,
   venueName,
   address,
 }: InfoModalProps) {
@@ -116,6 +120,22 @@ export function InfoModal({
     return null;
   }, [externalMapsUrl, query]);
 
+/**
+ * Abre el dialer para llamar al número de teléfono pasado por parámetro.
+ * Si no se pasa ningún parámetro, no se hace nada.
+ * Si no se puede abrir el dialer, se mostrará un mensaje de error en la consola.
+ * @param {string | null | undefined} phone - El número de teléfono al que se quiere llamar.
+ */
+	const callPhone = (phone: string | null | undefined) => {
+		if (!phone) return;
+
+		const url = `tel:${phone}`;
+
+		Linking.openURL(url).catch(() => {
+			console.log("No se pudo abrir el dialer");
+		});
+	};
+  
   // ✅ qué mostramos en el mapa:
   // 1) location_embed (ideal)
   // 2) fallback embed por query (si no hay embed)
@@ -125,125 +145,155 @@ export function InfoModal({
   const addressLine2 = (address?.address_2 ?? "").trim();
 
   return (
-    <Modal visible={isOpen} transparent animationType="fade" onRequestClose={onClose}>
-      {/* Backdrop */}
-      <Pressable className="flex-1 bg-black/40" onPress={onClose} />
+		<Modal
+			visible={isOpen}
+			transparent
+			animationType="fade"
+			onRequestClose={onClose}
+		>
+			{/* Backdrop */}
+			<Pressable className="flex-1 bg-black/40" onPress={onClose} />
 
-      {/* Dialog */}
-      <View className="absolute left-4 right-4 top-24 mx-auto max-w-md rounded-2xl bg-white p-5 border border-black/10">
-        <Text className="text-center text-xl font-semibold text-foreground">
-          Información
-        </Text>
+			{/* Dialog */}
+			<View className="absolute left-4 right-4 top-24 mx-auto max-w-md rounded-2xl bg-white p-5 border border-black/10">
+				<Text className="text-center text-xl font-semibold text-foreground">
+					Información
+				</Text>
 
-        <View className="mt-5 gap-4">
-          {/* Instagram */}
-          <View className="rounded-xl p-3 bg-black/5 flex-row items-center justify-between">
-            <View className="flex-row items-center gap-2">
-              <Entypo name="instagram" size={18} color="#111827" />
-              <Text className="text-foreground font-medium">Instagram</Text>
-            </View>
+				<View className="mt-5 gap-4">
+					{/* Instagram */}
+					<View className="rounded-xl p-3 bg-black/5 flex-row items-center justify-between">
+						<View className="flex-row items-center gap-2">
+							<Entypo name="instagram" size={18} color="#111827" />
+							<Text className="text-foreground font-medium">Instagram</Text>
+						</View>
 
-            <Button
-              variant="menu"
-              disabled={!socialUrl}
-              onPress={() => openExternal(socialUrl)}
-            >
-              <Text className="font-semibold">
-                {socialUrl ? "Abrir" : "No disponible"}
-              </Text>
-            </Button>
-          </View>
+						<Button
+							variant="menu"
+							disabled={!socialUrl}
+							onPress={() => openExternal(socialUrl)}
+						>
+							<Text className="font-semibold">
+								{socialUrl ? "Abrir" : "No disponible"}
+							</Text>
+						</Button>
+					</View>
 
-          {/* Dirección (opcional, si NO querés mostrarla, borrá este bloque) */}
-          <View className="rounded-xl p-3 bg-black/5">
-            <View className="flex-row items-center gap-2 mb-2">
-              <EvilIcons name="location" size={22} color="#111827" />
-              <Text className="text-foreground font-semibold">Dirección</Text>
-            </View>
+					{/* Telefono */}
+					<View className="rounded-xl p-3 bg-black/5 flex-row items-center justify-between">
+						<View className="flex-row items-center gap-2">
+							<Entypo name="phone" size={18} color="#111827" />
+							<Text className="text-foreground font-medium">Telefono</Text>
+						</View>
 
-            {!!addressLine1 && <Text className="text-foreground">{addressLine1}</Text>}
-            {!!addressLine2 && (
-              <Text className="text-foreground opacity-80">{addressLine2}</Text>
-            )}
+						<Button
+							variant="menu"
+							disabled={!phone}
+							onPress={() => callPhone(phone)}
+						>
+							<Text className="font-semibold">
+								{phone ? "Llamar" : "No disponible"}
+							</Text>
+						</Button>
+					</View>
+					{/* Dirección (opcional, si NO querés mostrarla, borrá este bloque) */}
+					<View className="rounded-xl p-3 bg-black/5">
+						<View className="flex-row items-center gap-2 mb-2">
+							<EvilIcons name="location" size={22} color="#111827" />
+							<Text className="text-foreground font-semibold">Dirección</Text>
+						</View>
 
-            {!addressLine1 && !addressLine2 && (
-              <Text className="text-foreground opacity-70">Sin dirección cargada</Text>
-            )}
-          </View>
+						{!!addressLine1 && (
+							<Text className="text-foreground">{addressLine1}</Text>
+						)}
+						{!!addressLine2 && (
+							<Text className="text-foreground opacity-80">{addressLine2}</Text>
+						)}
 
-          {/* Mapa */}
-          <View className="rounded-xl overflow-hidden border border-black/10">
-            <View className="px-3 py-2 bg-black/5 flex-row items-center justify-between">
-              <Text className="text-foreground font-semibold">Mapa</Text>
+						{!addressLine1 && !addressLine2 && (
+							<Text className="text-foreground opacity-70">
+								Sin dirección cargada
+							</Text>
+						)}
+					</View>
 
-              <Button
-                variant="outline"
-                disabled={!mapsOpenUrl}
-                onPress={() => openExternal(mapsOpenUrl)}
-              >
-                <Text className="font-semibold">
-                  {mapsOpenUrl ? "Abrir Maps" : "No disponible"}
-                </Text>
-              </Button>
-            </View>
+					{/* Mapa */}
+					<View className="rounded-xl overflow-hidden border border-black/10">
+						<View className="px-3 py-2 bg-black/5 flex-row items-center justify-between">
+							<Text className="text-foreground font-semibold">Mapa</Text>
 
-            {/* ✅ Render según plataforma */}
-            {mapToShow ? (
-              Platform.OS === "web" ? (
-                <View style={{ height: 220 }}>
-                  <iframe
-                    src={mapToShow}
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                  />
-                </View>
-              ) : WebView ? (
-                <View style={{ height: 220 }}>
-                  <WebView
-                    source={{ uri: mapToShow }}
-                    javaScriptEnabled
-                    domStorageEnabled
-                    originWhitelist={["*"]}
-                  />
-                </View>
-              ) : (
-                <View className="p-4">
-                  <Text className="text-foreground opacity-70">
-                    No se pudo cargar el mapa.
-                  </Text>
-                </View>
-              )
-            ) : isMapsShortLink(location_link) ? (
-              <View className="p-4">
-                <Text className="text-foreground font-medium mb-2">
-                  📍 Ubicación disponible
-                </Text>
-                <Text className="text-foreground opacity-70 mb-3">
-                  Este link corto de Google Maps no se puede embeber. Abrilo en Maps.
-                </Text>
+							<Button
+								variant="outline"
+								disabled={!mapsOpenUrl}
+								onPress={() => openExternal(mapsOpenUrl)}
+							>
+								<Text className="font-semibold">
+									{mapsOpenUrl ? "Abrir Maps" : "No disponible"}
+								</Text>
+							</Button>
+						</View>
 
-                <Button variant="menu" onPress={() => openExternal(location_link)}>
-                  <Text className="font-semibold">Abrir en Google Maps</Text>
-                </Button>
-              </View>
-            ) : (
-              <View className="p-4">
-                <Text className="text-foreground opacity-70">
-                  No hay un link válido para mostrar el mapa.
-                </Text>
-              </View>
-            )}
-          </View>
+						{/* ✅ Render según plataforma */}
+						{mapToShow ? (
+							Platform.OS === "web" ? (
+								<View style={{ height: 220 }}>
+									<iframe
+										src={mapToShow}
+										width="100%"
+										height="100%"
+										style={{ border: 0 }}
+										loading="lazy"
+										referrerPolicy="no-referrer-when-downgrade"
+									/>
+								</View>
+							) : WebView ? (
+								<View style={{ height: 220 }}>
+									<WebView
+										source={{ uri: mapToShow }}
+										javaScriptEnabled
+										domStorageEnabled
+										originWhitelist={["*"]}
+									/>
+								</View>
+							) : (
+								<View className="p-4">
+									<Text className="text-foreground opacity-70">
+										No se pudo cargar el mapa.
+									</Text>
+								</View>
+							)
+						) : isMapsShortLink(location_link) ? (
+							<View className="p-4">
+								<Text className="text-foreground font-medium mb-2">
+									📍 Ubicación disponible
+								</Text>
+								<Text className="text-foreground opacity-70 mb-3">
+									Este link corto de Google Maps no se puede embeber. Abrilo en
+									Maps.
+								</Text>
 
-          {/* Cerrar */}
-          <Button variant="outline" onPress={onClose}>
-            <Text className="font-semibold">Cerrar</Text>
-          </Button>
-        </View>
-      </View>
-    </Modal>
-  );
+								<Button
+									variant="menu"
+									onPress={() => openExternal(location_link)}
+								>
+									<Text className="font-semibold">Abrir en Google Maps</Text>
+								</Button>
+							</View>
+						) : (
+							<View className="p-4">
+								<Text className="text-foreground opacity-70">
+									No hay un link válido para mostrar el mapa.
+								</Text>
+							</View>
+						)}
+					</View>
+
+					{/* Cerrar */}
+					<Button variant="outline" onPress={onClose}>
+						<Text className="font-semibold">Cerrar</Text>
+					</Button>
+				</View>
+			</View>
+		</Modal>
+	);
 }

@@ -14,12 +14,11 @@ interface OrderProgressBarProps {
 
 
 export function OrderProgressBar({ status, deliveryLocation }: OrderProgressBarProps) {
-  const delivery = deliveryLocation === ('envio' || 'retiro_envio') ? 'enviar' : 'retirar';
-  const icon = delivery === 'enviar' ? 'directions-bike' : 'local-restaurant';
+  const delivery = (deliveryLocation === 'envio') ? 'enviar' : 'retirar';
   const steps = [
     { id: "entrante" as const, label: "Pendiente", icon: "access-time" as const },
     { id: "preparacion" as const, label: "Preparando", icon: "soup-kitchen" as const }, // o "tool"
-    { id: delivery, label: "Listo", icon: icon },
+    { id: delivery, label: "Listo", icon: "local-restaurante" },
     { id: "terminadas" as const, label: "Entregado", icon: "check" as const },
   ];
     const getProgressValue = (status: OrderStatus | [] | null): number => {

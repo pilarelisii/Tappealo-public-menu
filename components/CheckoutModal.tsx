@@ -54,7 +54,7 @@ const COUNTRY_OPTIONS = [
 
 function buildReturnUrls(baseReturnUrl: string, slug: string, utm: string) {
   const base = String(baseReturnUrl || "").replace(/\/$/, "");
-  const path = `/${encodeURIComponent(slug)}/`;
+  const path = `menu/${encodeURIComponent(slug)}/`;
   const qs = new URLSearchParams({
     utm_source: "qr",
     utm_campaign: utm,
@@ -231,9 +231,9 @@ export function CheckoutModal({
 										</Text>
 									))}
 								{deliveryLocation === "retiro" && (
-										<Text className="text-lg text-center mb-2 text-foreground">
-                      Te contactaremos para coordinar el retiro
-										</Text>
+									<Text className="text-lg text-center mb-2 text-foreground">
+										Te contactaremos para coordinar el retiro
+									</Text>
 								)}
 								{deliveryLocation === "en_lugar" && (
 									<Text className="text-lg text-center mb-2 text-foreground">
@@ -419,45 +419,50 @@ export function CheckoutModal({
 											</Text>
 										</View>
 									</View>
-
-									<Button
-										variant="outline"
-										size="lg"
-										className="w-full"
-										onPress={() => confirmOrder("efectivo")}
-									>
-										<Text className="font-semibold">Efectivo en caja</Text>
-									</Button>
-
-									{Platform.OS === "web" ? (
-										<View className="gap-2">
-											<Text className="text-base font-semibold">
-												Mercado Pago
-											</Text>
+									{deliveryLocationName !== "envio" && (
+										<>
+											{/* METODO DE PAGO EFECTIVO */}
 											<Button
-												variant="menu"
+												variant="outline"
 												size="lg"
 												className="w-full"
-												disabled={
-													mpLoading ||
-													!phoneNumber ||
-													!!phoneError ||
-													!mpPublicKey
-												}
-												onPress={handleMercadoPagoWeb}
+												onPress={() => confirmOrder("efectivo")}
 											>
-												<Text className="font-semibold">
-													{mpLoading
-														? "Redirigiendo..."
-														: "Pagar con Mercado Pago"}
-												</Text>
+												<Text className="font-semibold">Efectivo en caja</Text>
 											</Button>
-											<Text className="text-xs opacity-70">
-												Te vamos a redirigir al checkout de Mercado Pago.
-											</Text>
-										</View>
-									) : null}
-
+											</>
+									)}
+											{/* METODO DE PAGO MP */}
+											{Platform.OS === "web" ? (
+												<View className="gap-2">
+													<Text className="text-base font-semibold">
+														Mercado Pago
+													</Text>
+													<Button
+														variant="menu"
+														size="lg"
+														className="w-full"
+														disabled={
+															mpLoading ||
+															!phoneNumber ||
+															!!phoneError ||
+															!mpPublicKey
+														}
+														onPress={handleMercadoPagoWeb}
+													>
+														<Text className="font-semibold">
+															{mpLoading
+																? "Redirigiendo..."
+																: "Pagar con Mercado Pago"}
+														</Text>
+													</Button>
+													<Text className="text-xs opacity-70">
+														Te vamos a redirigir al checkout de Mercado Pago.
+													</Text>
+												</View>
+											) : null}
+									
+									
 									<Button
 										variant="ghost"
 										className="w-full"
