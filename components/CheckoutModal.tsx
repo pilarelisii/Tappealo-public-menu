@@ -1,13 +1,13 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Modal, Pressable, ScrollView, View, Text, Platform } from "react-native";
+import { createMpPreference } from "@/src/core/api/public";
 import { Feather } from "@expo/vector-icons";
+import React, { useEffect, useMemo, useState } from "react";
+import { Modal, Platform, Pressable, ScrollView, Text, View } from "react-native";
+import { RatingData, RatingModal } from "./RatingModal";
+import type { CartLine } from "./ShoppingCart";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
-import type { CartLine } from "./ShoppingCart";
-import { RatingModal, RatingData } from "./RatingModal";
-import { createMpPreference } from "@/src/core/api/public";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -335,7 +335,7 @@ export function CheckoutModal({
 													}
 													value={phoneNumber}
 													onChangeText={handlePhoneChange}
-													className={phoneError ? "border border-red-500" : ""}
+													className={`border ${phoneError && "border-red-500"}`}
 													keyboardType="phone-pad"
 												/>
 											</View>

@@ -1,48 +1,48 @@
+import { CartNotification } from "@/components/CartNotification";
+import { CheckoutModal, type OrderData } from "@/components/CheckoutModal";
+import { FeaturedCarousel } from "@/components/FeaturedCarousel";
+import { LoadingScreen } from "@/components/LoadingScreen";
+import { MenuItem, type MenuItemType } from "@/components/MenuItem";
+import { PromoItem } from "@/components/PromoItem";
+import { RightDrawer } from "@/components/RightDrawer";
+import { ShoppingCart } from "@/components/ShoppingCart";
+import { AppImage } from "@/components/ui/AppImage";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { createPublicCall } from "@/src/core/api/public";
+import { Feather } from "@expo/vector-icons";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+	findNodeHandle,
 	Platform,
 	Pressable,
 	ScrollView,
 	Text,
-	View,
-	findNodeHandle,
 	UIManager,
+	View,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
-import { Feather } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { createPublicCall } from "@/src/core/api/public";
-import { RightDrawer } from "@/components/RightDrawer";
-import { FeaturedCarousel } from "@/components/FeaturedCarousel";
-import { MenuItem, type MenuItemType } from "@/components/MenuItem";
-import { ShoppingCart } from "@/components/ShoppingCart";
-import { CheckoutModal, type OrderData } from "@/components/CheckoutModal";
-import { LoadingScreen } from "@/components/LoadingScreen";
-import { CartNotification } from "@/components/CartNotification";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { AppImage } from "@/components/ui/AppImage";
-import { PromoItem } from "@/components/PromoItem";
 
-import {
-	getPublicVenue,
-	getPublicCategories,
-	getPublicProducts,
-	getPublicPromotions,
-	getPublicFeaturedProducts,
-	getPublicPaymentMethods,
-	createPublicOrderPost,
-	getPublicOrderStatus,
-	getPublicQrLocation,
-	type PublicPromotion,
-	type PublicVenue,
-	type Category,
-} from "@/src/core/api/public";
-import { OrderStatus } from "@/src/core/types";
-import { InfoModal } from "@/components/InfoModal";
 import { CallButton } from "@/components/CallButton";
 import { CallButtonModal } from "@/components/CallButtonModal";
+import { InfoModal } from "@/components/InfoModal";
+import {
+	createPublicOrderPost,
+	getPublicCategories,
+	getPublicFeaturedProducts,
+	getPublicOrderStatus,
+	getPublicPaymentMethods,
+	getPublicProducts,
+	getPublicPromotions,
+	getPublicQrLocation,
+	getPublicVenue,
+	type Category,
+	type PublicPromotion,
+	type PublicVenue,
+} from "@/src/core/api/public";
+import { OrderStatus } from "@/src/core/types";
 
 // helpers
 function expandCartToOrderItems(cart: CartLine[], catalog: MenuItemType[]) {
@@ -836,8 +836,8 @@ export default function Index() {
 							/>
 						</Button>
 					</View>
-
-					<View className="absolute right-4 top-2">
+					{params.utm_campaign !== undefined && (
+						<View className="absolute right-4 top-2">
 						<Button
 							variant="menu"
 							size="icon"
@@ -861,6 +861,8 @@ export default function Index() {
 							)}
 						</Button>
 					</View>
+					)}
+					
 				</View>
 
 				{featured?.length > 0 && (
@@ -941,6 +943,7 @@ export default function Index() {
 										onAddPromo={(pp) => {
 											addPromotionToCart(pp);
 										}}
+										active={params.utm_campaign !== undefined}
 									/>
 								))}
 							</View>
@@ -975,6 +978,7 @@ export default function Index() {
 													item={it}
 													onAddToCart={addToCart}
 													cartQuantity={cartItem?.quantity || 0}
+													active={params.utm_campaign !== undefined}
 												/>
 											);
 										})}
@@ -991,7 +995,7 @@ export default function Index() {
 			</ScrollView>
 			
 			{deliveryLocationName === 'en_lugar' &&
-				<CallButton onCallButton={() => setCallModal(true)}/>
+				<CallButton onCallButton={() => setCallModal(true)} active={totalItems > 0}/>
 			}
 
 			<RightDrawer open={isCartOpen} onClose={() => setIsCartOpen(false)}>
