@@ -55,7 +55,7 @@ const COUNTRY_OPTIONS = [
 
 function buildReturnUrls(baseReturnUrl: string, slug: string, utm: string) {
   const base = String(baseReturnUrl || "").replace(/\/$/, "");
-  const path = `menu/${encodeURIComponent(slug)}/`;
+  const path = `${encodeURIComponent(slug)}/`;
   const qs = new URLSearchParams({
     utm_source: "qr",
     utm_campaign: utm,
