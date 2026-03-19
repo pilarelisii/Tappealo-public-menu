@@ -13,7 +13,9 @@ const heroRestaurant = require("@/assets/images/hero-restaurant.jpg");
 
 const CTASection = () => {
 	const openDemo = () => {
-		Linking.openURL("https://w.app/fij1pn");
+		Linking.openURL(
+			"https://wa.me/5492213519098?text=Hola,%20quiero%20saber%20mas%20sobre%20Tappealo!"
+		);
 	};
 
 	return (

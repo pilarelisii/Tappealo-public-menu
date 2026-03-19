@@ -4,7 +4,10 @@ import { ArrowRight } from "lucide-react-native";
 
 const HeroSection = () => {
 	const openDemo = () => {
-		window.open("https://w.app/fij1pn", "_blank");
+		window.open(
+			"https://wa.me/5492213519098?text=Hola,%20quiero%20saber%20mas%20sobre%20Tappealo!",
+			"_blank"
+		);
 	};
 
 	return (
@@ -29,7 +32,15 @@ const HeroSection = () => {
 						digital, mesas y comunicación con los clientes mediante códigos QR.
 					</Text>
 
-					<Pressable style={styles.button} onPress={() => window.open("https://w.app/fij1pn", "_blank")}>
+					<Pressable
+						style={styles.button}
+						onPress={() =>
+							window.open(
+								"https://wa.me/5492213519098?text=Hola,%20quiero%20saber%20mas%20sobre%20Tappealo!",
+								"_blank"
+							)
+						}
+					>
 						<Text style={styles.buttonText}>Solicitar demo</Text>
 						<ArrowRight size={18} color="#fff" style={{ marginLeft: 6 }} />
 					</Pressable>

@@ -12,13 +12,14 @@ const plans = [
 			"Hasta 10 mesas",
 			"Panel administrador",
 			"Página propia",
+			"Subdominio",
 			"Soporte por email",
 		],
 		highlighted: false,
 	},
 	{
 		name: "Plan Pro",
-		price: "249",
+		price: "199",
 		desc: "Hasta 20 mesas",
 		features: [
 			"Todo del Plan Básico",
@@ -29,7 +30,7 @@ const plans = [
 	},
 	{
 		name: "Plan Premium",
-		price: "379",
+		price: "349",
 		desc: "Más de 20 mesas",
 		features: [
 			"Todo del Plan Pro",
@@ -42,7 +43,9 @@ const plans = [
 
 const Pricing = () => {
 	const openDemo = () => {
-		Linking.openURL("https://w.app/fij1pn");
+		Linking.openURL(
+			"https://wa.me/5492213519098?text=Hola,%20quiero%20saber%20mas%20sobre%20Tappealo!"
+		);
 	};
 
 	return (
