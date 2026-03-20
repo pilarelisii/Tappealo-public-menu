@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Pressable } from "react-native";
 import {
 	QrCode,
 	Table2,
@@ -8,6 +8,7 @@ import {
 	FileSpreadsheet,
 	Globe,
 } from "lucide-react-native";
+import { ArrowRight } from "lucide-react-native";
 
 const features = [
 	{
@@ -123,6 +124,18 @@ const Features = () => {
 						Pueden explorar categorías, ver imágenes de cada plato y comunicarse
 						con el personal, todo desde su propio celular.
 					</Text>
+					<Pressable
+						style={styles.button}
+						onPress={() =>
+							window.open(
+								"https://www.tappealo.com/manual-de-uso",
+								"_blank"
+							)
+						}
+					>
+						<Text style={styles.buttonText}>Mirá nuestro manual de uso</Text>
+						<ArrowRight size={18} color="#fff" style={{ marginLeft: 6 }} />
+					</Pressable>
 				</View>
 			</View>
 		</View>
@@ -132,6 +145,22 @@ const Features = () => {
 export default Features;
 
 const styles = StyleSheet.create({
+	button: {
+		flexDirection: "row",
+		alignItems: "center",
+		backgroundColor: "#4e3526",
+		paddingVertical: 14,
+		paddingHorizontal: 22,
+		width: '40%',
+		margin: 'auto',
+		marginTop: 20,
+		borderRadius: 10,
+	},
+	buttonText: {
+		color: "#fff",
+		fontWeight: "600",
+		fontSize: 16,
+	},
 	section: {
 		paddingVertical: 60,
 	},
