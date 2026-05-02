@@ -8,7 +8,7 @@ import type { MenuItemType } from "./MenuItem";
 import { OrderProgressBar } from "./OrderProgress";
 import { useLanguageContext } from "@/src/i18n/LanguageProvider";
 
-type OrderStatus = 'entrante' | 'preparacion' | 'retirar' | 'enviar' | 'terminadas';
+type OrderStatus = 'entrante' | 'preparacion' | 'retirar' | 'falta-pagar' | 'terminadas';
 type ActiveOrder = {
 	id: string;
 	ref_order_id: string;
@@ -104,18 +104,6 @@ export function ShoppingCart({
   const totalItems = items.reduce((sum, it) => sum + it.quantity, 0);
 
   const suggestedItems = getSuggestedItems(items, catalog);
-  const dulcesConImagen = [30, 31, 34];
-
-  const shouldShowImage = (category: string, id: number) => {
-    return (
-      category !== "FRIOS" &&
-      category !== "WHITES" &&
-      category !== "SALADOS" &&
-      category !== "OTRAS" &&
-      category !== "BEBIDAS" &&
-      (category !== "DULCES" || dulcesConImagen.includes(id))
-    );
-  };
 
   if (items.length === 0) {
     return (
@@ -143,15 +131,20 @@ export function ShoppingCart({
 									status={orderStatusById[o.id] ?? t.incoming}
 									deliveryLocation={deliveryLocation}
 								/>
+								{deliveryLocation === "en_lugar" &&
+									orderStatusById[o.id] === "falta-pagar" && (
+										<Text className="font-light text-md text-foreground m-5">
+											Podes pedir la cuenta mediante el timbre o acercarte a la
+											caja para pagar. ¡Gracias por tu visita!
+										</Text>
+									)}
 							</View>
 						))}
 					</View>
 				)}
 
 				<View className="flex-1 items-center justify-center">
-					<Text className="opacity-70 text-foreground">
-						{t.emptyCart}
-					</Text>
+					<Text className="opacity-70 text-foreground">{t.emptyCart}</Text>
 				</View>
 			</View>
 		);
@@ -188,6 +181,13 @@ export function ShoppingCart({
 									status={orderStatusById[o.id] ?? t.incoming}
 									deliveryLocation={deliveryLocation}
 								/>
+								{deliveryLocation === "en_lugar" &&
+									orderStatusById[o.id] === "falta-pagar" && (
+										<Text>
+											Podes pedir la cuenta mediante el timbre o acercarte a la
+											caja para pagar. ¡Gracias por tu visita!
+										</Text>
+									)}
 							</View>
 						))}
 					</View>
@@ -280,17 +280,12 @@ export function ShoppingCart({
 
 							<View className="gap-3">
 								{suggestedItems.map((it) => {
-									const hasImage =
-										typeof it.image === "string" && it.image.length > 0;
-									const showImage =
-										hasImage && shouldShowImage(it.category, it.id);
-
 									return (
 										<View
 											key={it.id}
 											className="flex-row gap-3 items-center p-3 rounded-lg border border-black/10"
 										>
-											{showImage ? (
+											{it.image ? (
 												<View className="w-16 h-16 overflow-hidden rounded-md bg-black/5">
 													<AppImage
 														uri={it.image as string}

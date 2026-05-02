@@ -9,6 +9,7 @@ export type PublicVenue = {
   address_1?: string;
   address_2?: string;
   logo_url?: string | null;
+  enabled: boolean;
 };
 
 export type Category = {
@@ -80,7 +81,7 @@ export type PublicQrLocation = {
   type?: string | null; // si después querés "en_lugar" / "envio" etc
 }
 
-const ORDER_STATUSES = ["entrante", "preparacion", "retirar", "enviar", "terminadas"] as const;
+const ORDER_STATUSES = ["entrante", "preparacion", "retirar", "falta-pagar", "terminadas"] as const;
 type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 function getBaseUrl() {
@@ -185,7 +186,7 @@ export function createPublicOrderPost(slug: string, body: CreateOrderBody) {
 }
 export type PublicOrderStatusResponse = {
   id: string;
-  status: "entrante" | "preparacion" | "retirar" | "enviar" | "terminadas";
+  status: "entrante" | "preparacion" | "retirar" | "falta-pagar" | "terminadas";
   qr_location_id?: string | null;
   ref_order_id?: string | null;
 }

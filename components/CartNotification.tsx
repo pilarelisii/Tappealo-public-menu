@@ -8,7 +8,7 @@ export type OrderStatus =
 	| "entrante"
 	| "preparacion"
 	| "retirar"
-	| "enviar"
+	| "falta-pagar"
 	| "terminadas";
 
 export type ActiveOrder = {
@@ -39,11 +39,8 @@ function statusLabel(s?: OrderStatus) {
 		case "preparacion":
 			return "Preparando";
 		case "retirar":
-			return "Listo para retirar";
-		case "enviar":
-			return "En camino";
-		case "terminadas":
-			return "Entregado";
+		case "falta-pagar":
+			return "Listo";
 		default:
 			return "Pendiente";
 	}

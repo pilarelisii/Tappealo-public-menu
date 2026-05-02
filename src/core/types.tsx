@@ -5,6 +5,7 @@ export type Venue = {
   logo_url: string | null;
   enabled: boolean;
   created_at: string;
+  
 }
 
 export type Product = {
@@ -34,5 +35,5 @@ export type PublicPromotion = {
   items: { product_id: string; quantity: number }[];
 };
 
-const ORDER_STATUSES = ["entrante", "preparacion", "retirar", "enviar", "terminadas"] as const;
+const ORDER_STATUSES = ["entrante", "preparacion", "retirar", "falta-pagar", "terminadas"] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
