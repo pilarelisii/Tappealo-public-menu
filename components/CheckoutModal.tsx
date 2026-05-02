@@ -154,7 +154,6 @@ export function CheckoutModal({
     }
   }, [isOpen]);
 
-  // ✅ WEB: pagar con MP → crear preferencia → redirect init_point
   const handleMercadoPagoWeb = async () => {
   try {
     setErrorMsg("");
@@ -402,7 +401,9 @@ export function CheckoutModal({
 										>
 											<Feather name="arrow-left" size={22} />
 										</Button>
-										<Text className="text-2xl font-bold">{t.paymentMethod}</Text>
+										<Text className="text-2xl font-bold">
+											{t.paymentMethod}
+										</Text>
 									</View>
 								</View>
 
@@ -432,38 +433,35 @@ export function CheckoutModal({
 											>
 												<Text className="font-semibold">{t.cashAtCounter}</Text>
 											</Button>
-											</>
+										</>
 									)}
-											{/* METODO DE PAGO MP */}
-											{Platform.OS === "web" ? (
-												<View className="gap-2">
-													<Text className="text-base font-semibold">
-														{t.mercadoPago}
-													</Text>
-													<Button
-														variant="menu"
-														size="lg"
-														className="w-full"
-														disabled={
-															mpLoading ||
-															!phoneNumber ||
-															!!phoneError ||
-															!mpPublicKey
-														}
-														onPress={handleMercadoPagoWeb}
-													>
-														<Text className="font-semibold">
-															{mpLoading
-																? t.redirecting
-																: t.payWithMercadoPago}
-														</Text>
-													</Button>
-													<Text className="text-xs opacity-70">
-														{t.mercadoPagoRedirectDescription}
-													</Text>
-												</View>
-											) : null}
-									
+									{/* METODO DE PAGO MP */}
+									{Platform.OS === "web" ? (
+										<View className="gap-2">
+											<Text className="text-base font-semibold">
+												{t.mercadoPago}
+											</Text>
+											<Button
+												variant="menu"
+												size="lg"
+												className="w-full"
+												disabled={
+													mpLoading ||
+													!phoneNumber ||
+													!!phoneError ||
+													!mpPublicKey
+												}
+												onPress={handleMercadoPagoWeb}
+											>
+												<Text className="font-semibold">
+													{mpLoading ? t.redirecting : t.payWithMercadoPago}
+												</Text>
+											</Button>
+											<Text className="text-xs opacity-70">
+												{t.mercadoPagoRedirectDescription}
+											</Text>
+										</View>
+									) : null}{" "}
 									
 									<Button
 										variant="ghost"
@@ -479,14 +477,14 @@ export function CheckoutModal({
 				</View>
 			</Modal>
 
-			<RatingModal
+			{/* <RatingModal
 				isOpen={showRatingModal}
 				onClose={() => {
 					setShowRatingModal(false);
 					onClose();
 				}}
 				onSubmit={handleRatingSubmit}
-			/>
+			/> */}
 		</>
 	);
 }

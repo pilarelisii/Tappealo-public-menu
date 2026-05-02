@@ -96,7 +96,7 @@ export function CartNotification({
 						isAnimating ? "opacity-95" : "opacity-100",
 					].join(" ")}
 				>
-					<View className="flex-row items-center justify-between p-4 gap-4">
+					<View className="flex-row items-center justify-between sm:px-4 px-2 py-4 gap-4">
 						{showCart ? (
 							// ✅ Carrito
 							<View className="flex-row items-center gap-3">
@@ -114,25 +114,26 @@ export function CartNotification({
 								</View>
 							</View>
 						) : (
-							// ✅ Pedidos en curso (carrito vacío)
 							<View className="flex-row items-center gap-3">
-								<View className="w-12 h-12 bg-black/5 rounded-lg items-center justify-center">
+								<View className="sm:w-12 sm:h-12 w-9 h-9 bg-black/5 rounded-lg items-center justify-center">
 									<Feather name="clock" size={22} color="#6B7280" />
 								</View>
 
-								<View className="min-w-0 flex">
-									<Text className="text-md font-semibold text-foreground">
+								<View className="flex flex-wrap min-w-0">
+									<Text className="text-md font-semibold text-foreground min-w-0">
 										{t.youHave} {activeOrders.length}{" "}
-										{activeOrders.length === 1 ? t.activeOrderSingle : t.activeOrderPlural} 
+										
+										{activeOrders.length === 1
+											? t.activeOrderSingle
+											: t.activeOrderPlural}
 									</Text>
 
 									{latestOrder ? (
 										<Text
-											className="text-sm text-foreground opacity-70"
+											className="text-sm text-foreground opacity-70 flex min-w-0"
 											numberOfLines={1}
 										>
-											{t.latest}: {latestOrder.ref_order_id} ·{" "}
-											{statusLabel(latestStatus)}
+											· {statusLabel(latestStatus)}
 										</Text>
 									) : null}
 								</View>
@@ -142,9 +143,9 @@ export function CartNotification({
 						<Button
 							variant="menu"
 							onPress={onOpenCart}
-							className="px-8 py-4 rounded-xl shrink-0"
+							className="sm:px-8 px-5 py-4 rounded-xl shrink-0"
 						>
-							<Text className="text-base font-semibold text-foreground">
+							<Text className="sm:text-base text-sm font-semibold text-foreground">
 								{showCart ? t.goToCart : t.viewOrders}
 							</Text>
 						</Button>

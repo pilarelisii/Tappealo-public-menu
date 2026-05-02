@@ -157,7 +157,7 @@ export function InfoModal({
 			<Pressable className="flex-1 bg-black/40" onPress={onClose} />
 
 			{/* Dialog */}
-			<View className="absolute left-4 right-4 top-24 mx-auto max-w-md rounded-2xl bg-white p-5 border border-black/10">
+			<View className="absolute left-4 right-4 sm:top-24 top-9 mx-auto max-w-md rounded-2xl bg-white p-5 border border-black/10">
 				<Text className="text-center text-xl font-semibold text-foreground">
 					{t.information}
 				</Text>

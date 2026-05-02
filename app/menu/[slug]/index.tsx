@@ -453,7 +453,7 @@ export default function Index() {
 				if (cancelled) return;
 				setVenue(v);
 
-				if (!v.service_active) {
+				if (!v.service_active || !v.enabled) {
 					setApiCategories([]);
 					setMenuItems([]);
 					return;
@@ -915,7 +915,7 @@ export default function Index() {
 				</View>
 
 				{/* Disabled venue */}
-				{venue && !venue.service_active && (
+				{venue && (!venue.service_active || !venue?.enabled) && (
 					<View className="px-4 py-10 items-center">
 						<Text className="text-lg font-semibold">
 							{t.serviceInactiveTitle}
@@ -1002,7 +1002,7 @@ export default function Index() {
 			{deliveryLocationName === "en_lugar" && (
 				<CallButton
 					onCallButton={() => setCallModal(true)}
-					active={totalItems > 0}
+					active={totalItems > 0 || activeOrders.length > 0}
 				/>
 			)}
 

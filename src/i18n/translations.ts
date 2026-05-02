@@ -36,7 +36,7 @@ export const translations = {
 
     phoneNumber: "Número de Celular",
     phoneWithoutCountryCode: "Número sin código de país",
-    phoneHelp: "Aquí solo te notificaremos sobre tu pedido",
+    phoneHelp: "Aquí solo te notificaremos sobre tu pedido. Esta información no será compartida con ningúna persona.",
 
     name: "Nombre",
 
@@ -47,13 +47,13 @@ export const translations = {
 
     paymentMethod: "Método de pago",
     totalToPay: "Total a pagar",
-    cashAtCounter: "Efectivo en caja",
+    cashAtCounter: "Efectivo / En caja",
     mercadoPago: "Mercado Pago",
 
     redirecting: "Redirigiendo",
     payWithMercadoPago: "Pagar con Mercado Pago",
     mercadoPagoRedirectDescription:
-      "Te vamos a redirigir al checkout de Mercado Pago.",
+      "Cualquier metodo de pago en la app. Te vamos a redirigir al checkout de Mercado Pago.",
     back: "Volver",
     mercadoPagoInitError: "No se pudo iniciar Mercado Pago",
 
@@ -131,7 +131,7 @@ export const translations = {
 
     phoneNumber: "Phone number",
     phoneWithoutCountryCode: "Number without country code",
-    phoneHelp: "We will only use this to notify you about your order",
+    phoneHelp: "We will only use this to notify you about your order. This information will not be shared with anyone.",
 
     name: "Name",
     close: "Close",
@@ -141,7 +141,7 @@ export const translations = {
 
     paymentMethod: "Payment method",
     totalToPay: "Total to pay",
-    cashAtCounter: "Cash at counter",
+    cashAtCounter: "Cash / Counter",
     mercadoPago: "Mercado Pago",
 
     continue: "Continue",
@@ -149,7 +149,7 @@ export const translations = {
     redirecting: "Redirecting",
     payWithMercadoPago: "Pay with Mercado Pago",
     mercadoPagoRedirectDescription:
-      "We will redirect you to Mercado Pago checkout.",
+      "Any payment method in the app. We will redirect you to Mercado Pago checkout.",
     back: "Back",
     mercadoPagoInitError: "Could not start Mercado Pago",
 
