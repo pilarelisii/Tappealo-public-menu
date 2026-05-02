@@ -61,7 +61,7 @@ function buildReturnUrls(baseReturnUrl: string, slug: string, utm: string) {
     utm_campaign: utm,
   }).toString();
 
-  const returnBase = `${base}${path}?${qs}`;
+  const returnBase = `${base}/${path}?${qs}`;
 
   return {
     success_url: `${returnBase}&payment=success`,
