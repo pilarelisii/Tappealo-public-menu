@@ -228,8 +228,6 @@ export async function getPublicPaymentMethods(slug: string) {
 export type CreateMpPreferenceBody = {
   items: { name: string; quantity: number; unit_price: number }[];
   total: number;
-
-  ref_order_id: string;
   qr_location_id: string;
 
   notes?: string;
@@ -243,6 +241,7 @@ export type CreateMpPreferenceBody = {
 
 export type CreateMpPreferenceResponse = {
   order_id: string;
+  ref_order_id: string;
   preferenceId: string;
   init_point?: string;
   sandbox_init_point?: string;
@@ -278,4 +277,21 @@ export async function createPublicCall(slug: string, payload: { qr_location_id: 
   const json = await res.json().catch(() => null);
   if (!res.ok) throw new Error(json?.error || "Error creando llamada");
   return json as { ok: true; call_id: string };
+}
+
+export async function getPublicOrderByRef(slug: string, refOrderId: string) {
+  const base = (process.env.EXPO_PUBLIC_API_BASE ?? "").replace(/\/$/, "");
+  const res = await fetch(
+    `${base}/public/${slug}/orders/by-ref/${encodeURIComponent(refOrderId)}`
+  );
+
+  if (res.status === 404) {
+    return { found: false };
+  }
+
+  if (!res.ok) {
+    throw new Error("Error buscando orden por referencia");
+  }
+
+  return await res.json();
 }

@@ -44,7 +44,7 @@ import {
 } from "@/src/core/api/public";
 import { OrderStatus } from "@/src/core/types";
 import { useLanguage } from "@/hooks/useLanguages";
-
+import { getPublicOrderByRef } from "@/src/core/api/public";
 
 // helpers
 function expandCartToOrderItems(cart: CartLine[], catalog: MenuItemType[]) {
@@ -95,25 +95,6 @@ async function getDeliveryLocation() {
 		} catch {}
 	}
 	return await AsyncStorage.getItem("deliveryLocation");
-}
-
-async function setOrderId(value: string) {
-	if (Platform.OS === "web") {
-		try {
-			localStorage.setItem("order_id", value);
-			return;
-		} catch {}
-	}
-	await AsyncStorage.setItem("order_id", value);
-}
-
-async function getOrderId() {
-	if (Platform.OS === "web") {
-		try {
-			return localStorage.getItem("order_id");
-		} catch {}
-	}
-	return await AsyncStorage.getItem("order_id");
 }
 
 function hashCode(str: string) {
@@ -195,7 +176,7 @@ async function getActiveOrders(): Promise<ActiveOrder[]> {
 	}
 }
 
-async function addActiveOrder(order: ActiveOrder) {
+export async function addActiveOrder(order: ActiveOrder) {
 	const current = await getActiveOrders();
 	// evita duplicados por id
 	const next = [order, ...current.filter((o) => o.id !== order.id)];
@@ -207,36 +188,6 @@ async function removeActiveOrder(orderId: string) {
 	await setActiveOrders(current.filter((o) => o.id !== orderId));
 }
 
-async function buildRefOrderId(slug: string) {
-	const d = new Date();
-	const dd = pad(d.getDate());
-	const mm = pad(d.getMonth() + 1);
-	const yy = pad(d.getFullYear() % 100);
-	const datePart = `${dd}${mm}${yy}`;
-
-	const key = `order_seq:${slug}:${datePart}`;
-
-	const getItem = async (k: string) => {
-		try {
-			if (Platform.OS === "web") return localStorage.getItem(k);
-		} catch {}
-		return await AsyncStorage.getItem(k);
-	};
-
-	const setItem = async (k: string, v: string) => {
-		try {
-			if (Platform.OS === "web") return localStorage.setItem(k, v);
-		} catch {}
-		return await AsyncStorage.setItem(k, v);
-	};
-
-	const last = Number((await getItem(key)) ?? "0");
-	const next = last + 1;
-	await setItem(key, String(next));
-
-	return `${datePart}-${pad(next, 4)}`;
-}
-
 export default function Index() {
 	const params = useLocalSearchParams<{
 		utm_campaign?: string;
@@ -246,7 +197,7 @@ export default function Index() {
 	const { language, changeLanguage, t, ready } = useLanguage();
 	const [mpPublicKey, setMpPublicKey] = useState<string | null>(null);
 	const [slug, setSlug] = useState<string | null>(null);
-
+	
 	const [venue, setVenue] = useState<PublicVenue | null>(null);
 	const [promotions, setPromotions] = useState<PublicPromotion[]>([]);
 	const [apiCategories, setApiCategories] = useState<Category[]>([]);
@@ -262,7 +213,6 @@ export default function Index() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [infoModal, setInfoModal] = useState(false);
 	const [callModal, setCallModal] = useState(false);
-	const [checkoutRefOrderId, setCheckoutRefOrderId] = useState<string>("");
 	const [checkoutQrLocationId, setCheckoutQrLocationId] = useState<string>("");
 	const [activeOrders, setActiveOrdersState] = useState<ActiveOrder[]>([]);
 	const [orderStatusById, setOrderStatusById] = useState<
@@ -325,7 +275,7 @@ export default function Index() {
 
 		(async () => {
 			try {
-        const list = await getActiveOrders();
+        		const list = await getActiveOrders();
 				setActiveOrdersState(list);
 				const pms = await getPublicPaymentMethods(slug);
 				if (cancelled) return;
@@ -594,6 +544,71 @@ export default function Index() {
 		};
 	}, [slug, params.utm_campaign]);
 
+	useEffect(() => {
+		if (!slug) return;
+
+		const payment = params.payment ? String(params.payment) : "";
+
+		if (payment !== "success" && payment !== "pending") return;
+
+		let cancelled = false;
+
+		const resolvePendingMpOrders = async () => {
+			try {
+				const list = await getActiveOrders();
+
+				const pendingMpOrders = list.filter((o) =>
+					String(o.id).startsWith("mp_pending_")
+				);
+
+				if (pendingMpOrders.length === 0) return;
+
+				let changed = false;
+				let nextList = [...list];
+
+				for (const pending of pendingMpOrders) {
+					const real = await getPublicOrderByRef(slug, pending.ref_order_id);
+
+					if (cancelled) return;
+
+					if (!real?.found) continue;
+
+					nextList = nextList.filter((o) => o.id !== pending.id);
+
+					nextList = [
+						{
+							id: real.id,
+							ref_order_id: real.ref_order_id,
+							qr_location_id: real.qr_location_id,
+							created_at: Date.now(),
+						},
+						...nextList.filter((o) => o.id !== real.id),
+					];
+
+					changed = true;
+				}
+
+				if (changed) {
+					await setActiveOrders(nextList);
+					setActiveOrdersState(nextList);
+				}
+			} catch (e) {
+				console.log("resolve pending MP error:", e);
+			}
+		};
+
+		resolvePendingMpOrders();
+
+		const intervalId = setInterval(resolvePendingMpOrders, 3000);
+
+		setTimeout(() => clearInterval(intervalId), 30000);
+
+		return () => {
+			cancelled = true;
+			clearInterval(intervalId);
+		};
+	}, [slug, params.payment]);
+
 	const addPromotionToCart = (promo: PublicPromotion) => {
 		setCartItems((prev) => {
 			const key = `promo:${promo.id}`;
@@ -650,7 +665,6 @@ export default function Index() {
 		);
 	};
 
-	// cart ops
 	const addToCart = (item: MenuItemType) => {
 		setCartItems((prev) => {
 			const product_id = String((item as any).remote_id ?? item.id);
@@ -695,7 +709,6 @@ export default function Index() {
 	const handleCheckout = async () => {
 		setIsCartOpen(false);
 
-		// qr_location_id
 		const qr =
 			(await getDeliveryLocation()) ||
 			(params.utm_campaign ? String(params.utm_campaign) : "");
@@ -703,9 +716,6 @@ export default function Index() {
 		const qrClean = String(qr || "").split("?")[0];
 
 		setCheckoutQrLocationId(qrClean || "sin-ubicacion");
-
-		const ref = slug ? await buildRefOrderId(slug) : "";
-		setCheckoutRefOrderId(ref || "");
 
 		setIsCheckoutOpen(true);
 	};
@@ -732,15 +742,12 @@ export default function Index() {
 
 			// ✅ EFECTIVO: acá sí creamos orden normal
 			const qr_location_id = checkoutQrLocationId || "sin-ubicacion";
-			const ref_order_id = checkoutRefOrderId;
-			if (!ref_order_id) throw new Error("Falta ref_order_id");
 
 			const orderItems = expandCartToOrderItems(cartItems, menuItems);
 
 			const payload = {
 				qr_location_id,
 				payment_method: "efectivo",
-				ref_order_id,
 				total,
 				name: orderData.customerName || undefined,
 				phone: orderData.phoneNumber || undefined,
@@ -750,17 +757,15 @@ export default function Index() {
 
 			const orderResp = await createPublicOrderPost(slug, payload);
 
-			// guardo el pedido en curso
 			await addActiveOrder({
 				id: orderResp.id,
-				ref_order_id: orderResp.ref_order_id ?? checkoutRefOrderId,
+				ref_order_id: orderResp.ref_order_id ?? 
 				qr_location_id,
 				created_at: Date.now(),
 			});
 
 			setCartItems([]);
-			setIsCheckoutOpen(false);
-
+			setIsCheckoutOpen(false)
 		} catch (e: any) {
 			console.log("❌ Error creando orden:", e?.message ?? e, e);
 		}
@@ -1031,7 +1036,7 @@ export default function Index() {
 				venueSlug={slug}
 				deliveryLocationName={deliveryLocationName}
 				qrLocationId={checkoutQrLocationId}
-				refOrderId={checkoutRefOrderId}
+				refOrderId={""}
 			/>
 			<CallButtonModal
 				isOpen={callModal}

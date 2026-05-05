@@ -9,6 +9,16 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { useLanguageContext } from "@/src/i18n/LanguageProvider";
+import { addActiveOrder } from "@/app/menu/[slug]";
+
+export interface ActiveOrder {
+	id: string;
+	ref_order_id: string;
+	qr_location_id?: string;
+	created_at: number;
+	completed_at?: number;
+}
+
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -24,6 +34,7 @@ interface CheckoutModalProps {
   qrLocationId: string;
   refOrderId: string;
 }
+
 
 export interface OrderData {
   notes: string;
@@ -154,52 +165,55 @@ export function CheckoutModal({
     }
   }, [isOpen]);
 
+
+
   const handleMercadoPagoWeb = async () => {
-  try {
-    setErrorMsg("");
+	try {
+		setErrorMsg("");
 
-    if (!venueSlug) throw new Error("Falta venueSlug");
-    if (!mpPublicKey) throw new Error("Mercado Pago no disponible");
-    if (!validatePhoneNumber(phoneNumber)) throw new Error("Revisá el número de teléfono");
+		if (!venueSlug) throw new Error("Falta venueSlug");
+		if (!mpPublicKey) throw new Error("Mercado Pago no disponible");
+		if (!validatePhoneNumber(phoneNumber)) throw new Error("Revisá el número de teléfono");
 
-    setMpLoading(true);
+		setMpLoading(true);
 
-    const fullPhone = getFullPhoneNumber();
+		const fullPhone = getFullPhoneNumber();
 
-    const baseReturnUrl =
-      (process.env.EXPO_PUBLIC_RETURN_BASE as string) ||
-      (typeof window !== "undefined" ? window.location.origin : "");
+		const baseReturnUrl =
+		(process.env.EXPO_PUBLIC_RETURN_BASE as string) ||
+		(typeof window !== "undefined" ? window.location.origin : "");
 
-    const urls = buildReturnUrls(baseReturnUrl, venueSlug, qrLocationId);
+		const urls = buildReturnUrls(baseReturnUrl, venueSlug, qrLocationId);
 
-    const pref = await createMpPreference(venueSlug, {
-      items: items.map((it) => ({ name: it.name, quantity: it.quantity, unit_price: it.price })),
-      total,
-      ref_order_id: refOrderId,
-      qr_location_id: qrLocationId,
-      notes,
-      phone_number: fullPhone || undefined,
-      customer_name: customerName || undefined,
-      ...urls,
-    });
+		const pref = await createMpPreference(venueSlug, {
+			items: items.map((it) => ({ name: it.name, quantity: it.quantity, unit_price: it.price })),
+			total,
+			qr_location_id: qrLocationId,
+			notes,
+			phone_number: fullPhone || undefined,
+			customer_name: customerName || undefined,
+			...urls,
+		});
 
-    const init = pref.init_point || pref.sandbox_init_point;
-    if (!init) throw new Error("Preferencia creada pero falta init_point");
+		const init = pref.init_point || pref.sandbox_init_point;
+		if (!init) throw new Error("Preferencia creada pero falta init_point");
 
-    window.location.href = init;
-  } catch (e: any) {
-    console.error(e);
-    setErrorMsg(e?.message ?? "No se pudo iniciar Mercado Pago");
-  } finally {
-    setMpLoading(false);
-  }
+		await addActiveOrder({
+			id: `mp_pending_${pref.ref_order_id}`,
+			ref_order_id: pref.ref_order_id ?? refOrderId,
+			qr_location_id: qrLocationId,
+			created_at: Date.now(),
+		})
+
+		window.location.href = init;
+	 	
+	} catch (e: any) {
+		console.error(e);
+		setErrorMsg(e?.message ?? "No se pudo iniciar Mercado Pago");
+	} finally {
+		setMpLoading(false);
+	}
 };
-
-  const handleRatingSubmit = (rating: RatingData) => {
-    console.log("Rating submitted:", rating);
-    setShowRatingModal(false);
-    onClose();
-  };
 
   return (
 		<>
