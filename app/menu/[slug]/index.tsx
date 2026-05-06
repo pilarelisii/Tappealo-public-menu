@@ -282,7 +282,7 @@ export default function Index() {
 				const cleanedList = list.filter((o: any) => {
 					const id = String(o.id || "");
 
-					if (id.startsWith("mp-pending-")) {
+					if (id.startsWith("mp_pending_")) {
 						return (
 							Date.now() - Number(o.created_at || 0) < PENDING_MP_KEEP_MS
 						);
