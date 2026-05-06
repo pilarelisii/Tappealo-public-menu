@@ -275,8 +275,29 @@ export default function Index() {
 
 		(async () => {
 			try {
-        		const list = await getActiveOrders();
-				setActiveOrdersState(list);
+        		const PENDING_MP_KEEP_MS = 2 * 60 * 1000;
+
+				const list = await getActiveOrders();
+
+				const cleanedList = list.filter((o: any) => {
+					const id = String(o.id || "");
+
+					if (id.startsWith("mp-pending-")) {
+						return (
+							Date.now() - Number(o.created_at || 0) < PENDING_MP_KEEP_MS
+						);
+					}
+
+					return true;
+				});
+
+				if (cleanedList.length !== list.length) {
+					await setActiveOrders(cleanedList);
+				}
+
+				setActiveOrdersState(cleanedList);
+
+
 				const pms = await getPublicPaymentMethods(slug);
 				if (cancelled) return;
 
@@ -549,11 +570,11 @@ export default function Index() {
 
 		const payment = params.payment ? String(params.payment) : "";
 
-		if (payment !== "success" && payment !== "pending") return;
+		if (payment !== "success" && payment !== "failure") return;
 
 		let cancelled = false;
 
-		const resolvePendingMpOrders = async () => {
+		const handleMpReturn = async () => {
 			try {
 				const list = await getActiveOrders();
 
@@ -563,6 +584,18 @@ export default function Index() {
 
 				if (pendingMpOrders.length === 0) return;
 
+				// Si canceló/falló MP, borro todos los pending
+				if (payment === "failure") {
+					const nextList = list.filter(
+						(o) => !String(o.id).startsWith("mp_pending_")
+					);
+
+					await setActiveOrders(nextList);
+					setActiveOrdersState(nextList);
+					return;
+				}
+
+				// Si pagó OK, busco la orden real creada por el webhook
 				let changed = false;
 				let nextList = [...list];
 
@@ -593,19 +626,26 @@ export default function Index() {
 					setActiveOrdersState(nextList);
 				}
 			} catch (e) {
-				console.log("resolve pending MP error:", e);
+				console.log("handle MP return error:", e);
 			}
 		};
 
-		resolvePendingMpOrders();
+		handleMpReturn();
 
-		const intervalId = setInterval(resolvePendingMpOrders, 3000);
+		const intervalId =
+			payment === "success" ? setInterval(handleMpReturn, 3000) : null;
 
-		setTimeout(() => clearInterval(intervalId), 30000);
+		const timeoutId =
+			payment === "success"
+				? setTimeout(() => {
+						if (intervalId) clearInterval(intervalId);
+					}, 30000)
+				: null;
 
 		return () => {
 			cancelled = true;
-			clearInterval(intervalId);
+			if (intervalId) clearInterval(intervalId);
+			if (timeoutId) clearTimeout(timeoutId);
 		};
 	}, [slug, params.payment]);
 
