@@ -28,10 +28,12 @@ import {
 import { CallButton } from "@/components/CallButton";
 import { CallButtonModal } from "@/components/CallButtonModal";
 import { InfoModal } from "@/components/InfoModal";
+import { useLanguage } from "@/hooks/useLanguages";
 import {
 	createPublicOrderPost,
 	getPublicCategories,
 	getPublicFeaturedProducts,
+	getPublicOrderByRef,
 	getPublicOrderStatus,
 	getPublicPaymentMethods,
 	getPublicProducts,
@@ -43,10 +45,33 @@ import {
 	type PublicVenue,
 } from "@/src/core/api/public";
 import { OrderStatus } from "@/src/core/types";
-import { useLanguage } from "@/hooks/useLanguages";
-import { getPublicOrderByRef } from "@/src/core/api/public";
 
 // helpers
+function applyVenueColors(venue: any) {
+	if (Platform.OS !== "web") return;
+	if (typeof document === "undefined") return;
+	const colors = venue?.colors || venue?.theme || venue || {};
+	document.documentElement.style.setProperty(
+		"--background",
+		colors.background_color || colors.background || "#FFFFFF"
+	);
+	document.documentElement.style.setProperty(
+		"--foreground",
+		colors.foreground_color || colors.foreground || "#3D220F"
+	);
+	document.documentElement.style.setProperty(
+		"--primary",
+		colors.primary_color || colors.primary || "#3D220F"
+	);
+	document.documentElement.style.setProperty(
+		"--accent",
+		colors.accent_color || colors.accent || "#D9C7BA"
+	);
+	document.documentElement.style.setProperty(
+		"--card",
+		colors.card_color || colors.card || "#FFFFFF"
+	);
+}
 function expandCartToOrderItems(cart: CartLine[], catalog: MenuItemType[]) {
 	const map = new Map<
 		string,
@@ -423,6 +448,7 @@ export default function Index() {
 				const v = await getPublicVenue(slug);
 				if (cancelled) return;
 				setVenue(v);
+				applyVenueColors(v);
 
 				if (!v.service_active || !v.enabled) {
 					setApiCategories([]);
