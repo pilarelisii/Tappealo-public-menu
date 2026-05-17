@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Modal, Pressable, View, Text, Platform, Linking } from "react-native";
+import { Modal, Pressable, View, Text, Platform, Linking, ScrollView } from "react-native";
 import { Entypo } from "@expo/vector-icons";
 import EvilIcons from "@expo/vector-icons/EvilIcons";
 import { Button } from "./ui/button";
@@ -33,6 +33,8 @@ interface InfoModalProps {
 
   // (si querés seguir mostrando phone, lo dejamos)
   phone?: string | null;
+
+  additional_content: string | null | undefined
 }
 
 function safeUrl(u?: string | null) {
@@ -95,6 +97,7 @@ export function InfoModal({
   phone,
   venueName,
   address,
+  additional_content
 }: InfoModalProps) {
 	const { language, changeLanguage, t, ready } = useLanguageContext()
   const socialUrl = useMemo(() => safeUrl(social_link), [social_link]);
@@ -156,8 +159,10 @@ export function InfoModal({
 			{/* Backdrop */}
 			<Pressable className="flex-1 bg-black/40" onPress={onClose} />
 
-			{/* Dialog */}
-			<View className="absolute left-4 right-4 sm:top-24 top-9 mx-auto max-w-md rounded-2xl bg-white p-5 border border-black/10">
+			<ScrollView
+				contentContainerStyle={{ padding: 20, backgroundColor: "white" }}
+				showsVerticalScrollIndicator={false}
+				>
 				<Text className="text-center text-xl font-semibold text-foreground">
 					{t.information}
 				</Text>
@@ -174,6 +179,12 @@ export function InfoModal({
 					
 				</View>
 				<View className="mt-5 gap-4">
+					{ additional_content &&
+						<Text className="text-base text-muted-foreground text-center">
+							{additional_content}
+						</Text>
+					}
+					
 					{/* Instagram */}
 					<View className="rounded-xl p-3 bg-black/5 flex-row items-center justify-between">
 						<View className="flex-row items-center gap-2">
@@ -308,7 +319,7 @@ export function InfoModal({
 						<Text className="font-semibold">{t.close}</Text>
 					</Button>
 				</View>
-			</View>
+			</ScrollView>
 		</Modal>
 	);
 }

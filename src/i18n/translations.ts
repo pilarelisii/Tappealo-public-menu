@@ -7,9 +7,10 @@ export const translations = {
 
     loading: "CARGANDO",
 
-    callWaiterConfirm: "¿Seguro que querés llamar al mozo?",
+    callWaiterConfirm: "Llamar al mozo",
     cancel: "Cancelar",
-    yesCall: "Sí, llamar",
+    yesCallCheck: "Pedir la cuenta",
+    yesCall: "Llamar al mozo",
 
     youHave: "Tenés",
     activeOrderSingle: "pedido en curso",
@@ -105,7 +106,8 @@ export const translations = {
 
     callWaiterConfirm: "Are you sure you want to call the waiter?",
     cancel: "Cancel",
-    yesCall: "Yes, call",
+   yesCallCheck: "I want to request the bill",
+   yesCall: "I want to call the waiter",
 
     youHave: "You have",
     activeOrderSingle: "active order",

@@ -9,7 +9,8 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { useLanguageContext } from "@/src/i18n/LanguageProvider";
-import { addActiveOrder } from "@/app/menu/[slug]";
+import { addActiveOrder } from "@/app/menu/[slug]"
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 export interface ActiveOrder {
 	id: string;
@@ -19,6 +20,10 @@ export interface ActiveOrder {
 	completed_at?: number;
 }
 
+export interface PaymentMethod {
+	type: "MP" | "EF" | "EF_Counter" | "TC" | "TD";
+	enabled: boolean;
+}
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -29,10 +34,11 @@ interface CheckoutModalProps {
   deliveryLocationName: string | null;
   mpPublicKey?: string | null;
   venueSlug?: string | null;
-
+  phoneClient: boolean;
   // ✅ nuevos: los pasás desde Index
   qrLocationId: string;
   refOrderId: string;
+  paymentMethods: PaymentMethod[];
 }
 
 
@@ -43,7 +49,7 @@ export interface OrderData {
   deliveryLocation: string;
   phoneNumber: string;
   customerName?: string;
-  paymentMethod: "efectivo" | "mercado_pago";
+  paymentMethod: "efectivo" | "mercado_pago" | "efectivo-counter";
 }
 
 function formatARS(n: number) {
@@ -91,131 +97,174 @@ export function CheckoutModal({
   venueSlug,
   qrLocationId,
   refOrderId,
+  phoneClient,
+  paymentMethods,
   deliveryLocationName,
 }: CheckoutModalProps) {
-  const { language, changeLanguage, t, ready } = useLanguageContext()
-  const [notes, setNotes] = useState("");
-  const [countryCode, setCountryCode] = useState("54");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [phoneError, setPhoneError] = useState("");
-  const [customerName, setCustomerName] = useState("");
+	const { language, changeLanguage, t, ready } = useLanguageContext();
+	const [notes, setNotes] = useState("");
+	const [countryCode, setCountryCode] = useState("54");
+	const [phoneNumber, setPhoneNumber] = useState("");
+	const [phoneError, setPhoneError] = useState("");
+	const [customerName, setCustomerName] = useState("");
 
-  const [isConfirmed, setIsConfirmed] = useState(false);
-  const [showRatingModal, setShowRatingModal] = useState(false);
-  const [showPaymentMethod, setShowPaymentMethod] = useState(false);
+	const [isConfirmed, setIsConfirmed] = useState(false);
+	const [showRatingModal, setShowRatingModal] = useState(false);
+	const [showPaymentMethod, setShowPaymentMethod] = useState(false);
 
-  const [mpLoading, setMpLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string>("");
+	const [mpLoading, setMpLoading] = useState(false);
+	const [errorMsg, setErrorMsg] = useState<string>("");
 
-  const deliveryLocation = useMemo(() => {
-    if (typeof window === "undefined") return "sin-ubicacion";
-    const params = new URLSearchParams(window.location.search);
-    return params.get("utm_campaign") || "sin-ubicacion";
-  }, []);
+	const deliveryLocation = useMemo(() => {
+		if (typeof window === "undefined") return "sin-ubicacion";
+		const params = new URLSearchParams(window.location.search);
+		return params.get("utm_campaign") || "sin-ubicacion";
+	}, []);
 
-  const validatePhoneNumber = (phone: string) => {
-    const clean = phone.replace(/[\s\-\(\)]/g, "");
-    return /^\d{8,12}$/.test(clean);
-  };
+	const validatePhoneNumber = (phone: string) => {
+		const clean = phone.replace(/[\s\-\(\)]/g, "");
+		return /^\d{8,12}$/.test(clean);
+	};
 
-  const getFullPhoneNumber = () => {
-    const clean = phoneNumber.replace(/[\s\-\(\)]/g, "");
-    if (!clean) return "";
-    if (countryCode === "54") {
-      const without0 = clean.startsWith("0") ? clean.slice(1) : clean;
-      return `54${without0.startsWith("9") ? "" : "9"}${without0}`;
-    }
-    return `${countryCode}${clean}`;
-  };
+	const getFullPhoneNumber = () => {
+		const clean = phoneNumber.replace(/[\s\-\(\)]/g, "");
+		if (!clean) return "";
+		if (countryCode === "54") {
+			const without0 = clean.startsWith("0") ? clean.slice(1) : clean;
+			return `54${without0.startsWith("9") ? "" : "9"}${without0}`;
+		}
+		return `${countryCode}${clean}`;
+	};
 
-  const handlePhoneChange = (value: string) => {
-    const sanitized = value.replace(/[^\d\s\-]/g, "");
-    setPhoneNumber(sanitized);
+	const handlePhoneChange = (value: string) => {
+		const sanitized = value.replace(/[^\d\s\-]/g, "");
+		setPhoneNumber(sanitized);
 
-    if (sanitized && !validatePhoneNumber(sanitized)) setPhoneError("Ingresá solo el número sin código de país");
-    else setPhoneError("");
-  };
+		if (sanitized && !validatePhoneNumber(sanitized))
+			setPhoneError("Ingresá solo el número sin código de país");
+		else setPhoneError("");
+	};
 
-  const confirmOrder = (paymentMethod: "efectivo" | "mercado_pago") => {
-    const fullPhoneNumber = getFullPhoneNumber();
-    onConfirm({
-      notes,
-      items,
-      total,
-      deliveryLocation,
-      phoneNumber: fullPhoneNumber,
-      customerName: customerName || undefined,
-      paymentMethod,
-    });
-    setIsConfirmed(true);
-  };
-
-  useEffect(() => {
-    if (!isOpen) {
-      setShowPaymentMethod(false);
-      setIsConfirmed(false);
-      setShowRatingModal(false);
-      setNotes("");
-      setPhoneNumber("");
-      setPhoneError("");
-      setCountryCode("54");
-      setCustomerName("");
-      setMpLoading(false);
-      setErrorMsg("");
-    }
-  }, [isOpen]);
-
-
-
-  const handleMercadoPagoWeb = async () => {
-	try {
-		setErrorMsg("");
-
-		if (!venueSlug) throw new Error("Falta venueSlug");
-		if (!mpPublicKey) throw new Error("Mercado Pago no disponible");
-		if (!validatePhoneNumber(phoneNumber)) throw new Error("Revisá el número de teléfono");
-
-		setMpLoading(true);
-
-		const fullPhone = getFullPhoneNumber();
-
-		const baseReturnUrl =
-		(process.env.EXPO_PUBLIC_RETURN_BASE as string) ||
-		(typeof window !== "undefined" ? window.location.origin : "");
-
-		const urls = buildReturnUrls(baseReturnUrl, venueSlug, qrLocationId);
-
-		const pref = await createMpPreference(venueSlug, {
-			items: items.map((it) => ({ name: it.name, quantity: it.quantity, unit_price: it.price })),
-			total,
-			qr_location_id: qrLocationId,
+	const confirmOrder = (paymentMethod: "efectivo" | "mercado_pago" | "efectivo-counter") => {
+		const fullPhoneNumber = getFullPhoneNumber();
+		onConfirm({
 			notes,
-			phone_number: fullPhone || undefined,
-			customer_name: customerName || undefined,
-			...urls,
+			items,
+			total,
+			deliveryLocation,
+			phoneNumber: fullPhoneNumber,
+			customerName: customerName || undefined,
+			paymentMethod,
 		});
+		setIsConfirmed(true);
+	};
 
-		const init = pref.init_point || pref.sandbox_init_point;
-		if (!init) throw new Error("Preferencia creada pero falta init_point");
+	useEffect(() => {
+		if (!isOpen) {
+			setShowPaymentMethod(false);
+			setIsConfirmed(false);
+			setShowRatingModal(false);
+			setNotes("");
+			setPhoneNumber("");
+			setPhoneError("");
+			setCountryCode("54");
+			setCustomerName("");
+			setMpLoading(false);
+			setErrorMsg("");
+		}
+	}, [isOpen]);
 
-		await addActiveOrder({
-			id: `mp_pending_${pref.ref_order_id}`,
-			ref_order_id: pref.ref_order_id ?? refOrderId,
-			qr_location_id: qrLocationId,
-			created_at: Date.now(),
-		})
 
-		window.location.href = init;
-	 	
-	} catch (e: any) {
-		console.error(e);
-		setErrorMsg(e?.message ?? "No se pudo iniciar Mercado Pago");
-	} finally {
-		setMpLoading(false);
-	}
-};
+	const isNameValid = customerName.trim().length > 0;
+	const isPhoneValid = phoneNumber.trim().length > 0;
 
-  return (
+	const canContinue = phoneClient
+		? isPhoneValid // si pide teléfono, alcanza con teléfono
+		: isNameValid; // si NO pide teléfono, el nombre es obligatorio
+
+	const handleMercadoPagoWeb = async () => {
+		try {
+			setErrorMsg("");
+
+			if (!venueSlug) throw new Error("Falta venueSlug");
+			if (!mpPublicKey) throw new Error("Mercado Pago no disponible");
+
+			setMpLoading(true);
+
+			const fullPhone = getFullPhoneNumber();
+
+			const baseReturnUrl =
+				(process.env.EXPO_PUBLIC_RETURN_BASE as string) ||
+				(typeof window !== "undefined" ? window.location.origin : "");
+
+			const urls = buildReturnUrls(baseReturnUrl, venueSlug, qrLocationId);
+
+			const pref = await createMpPreference(venueSlug, {
+				items: items.map((it) => ({
+					name: it.name,
+					quantity: it.quantity,
+					unit_price: it.price,
+				})),
+				total,
+				qr_location_id: qrLocationId,
+				notes,
+				phone_number: fullPhone || null,
+				customer_name: customerName || undefined,
+				...urls,
+			});
+
+			const init = pref.init_point || pref.sandbox_init_point;
+			if (!init) throw new Error("Preferencia creada pero falta init_point");
+
+			await addActiveOrder({
+				id: `mp_pending_${pref.ref_order_id}`,
+				ref_order_id: pref.ref_order_id ?? refOrderId,
+				qr_location_id: qrLocationId,
+				created_at: Date.now(),
+			});
+
+			window.location.href = init;
+		} catch (e: any) {
+			console.error(e);
+			setErrorMsg(e?.message ?? "No se pudo iniciar Mercado Pago");
+		} finally {
+			setMpLoading(false);
+		}
+	};
+
+	const paymentOptions = [
+		{
+			id: "counter",
+			title: "Efectivo / Tarjeta",
+			subtitle: "Pago en caja",
+			icon: "cash-register" as const,
+			onPress: () => confirmOrder("efectivo-counter"),
+			show: paymentMethods.some(
+				(m) => m.enabled && ["EF_Counter", "TC", "TD"].includes(m.type)
+			),
+		},
+		{
+			id: "table",
+			title: "Efectivo / Tarjeta",
+			subtitle: "Pago en mesa",
+			icon: "table-chair" as const,
+			onPress: () => confirmOrder("efectivo"),
+			show: paymentMethods.some(
+				(m) => m.enabled && ["EF", "TC", "TD"].includes(m.type)
+			),
+		},
+		{
+			id: "mp",
+			title: "Mercado Pago",
+			subtitle: "Pago online",
+			icon: "cellphone" as const,
+			onPress: handleMercadoPagoWeb,
+			show: paymentMethods.some((m) => m.enabled && m.type === "MP"),
+			disabled: mpLoading || !mpPublicKey,
+		},
+	];
+
+	return (
 		<>
 			<Modal
 				visible={isOpen}
@@ -308,7 +357,7 @@ export function CheckoutModal({
 											</View>
 										))}
 
-										<View className="flex-row items-center justify-between pt-4 border-t border-black/10">
+										<View className="flex-row items-center text-foreground justify-between pt-4 border-t border-black/10">
 											<Text>{t.total}:</Text>
 											<Text className="text-lg font-bold text-primary">
 												{formatARS(total)}
@@ -317,52 +366,54 @@ export function CheckoutModal({
 									</View>
 
 									<View className="gap-4">
-										<View>
-											<Label>{t.phoneNumber} *</Label>
-											<View className="flex-row gap-2 mt-1">
-												<Pressable
-													className="h-10 px-3 rounded-md border border-black/10 bg-white justify-center"
-													onPress={() => {
-														const idx = COUNTRY_OPTIONS.findIndex(
-															(x) => x.value === countryCode
-														);
-														const next =
-															COUNTRY_OPTIONS[
-																(idx + 1) % COUNTRY_OPTIONS.length
-															];
-														setCountryCode(next.value);
-													}}
-												>
-													<Text className="text-sm">
-														{
-															COUNTRY_OPTIONS.find(
+										{phoneClient && (
+											<View>
+												<Label>{t.phoneNumber} *</Label>
+												<View className="flex-row gap-2 mt-1">
+													<Pressable
+														className="h-10 px-3 rounded-md border border-black/10 bg-white justify-center"
+														onPress={() => {
+															const idx = COUNTRY_OPTIONS.findIndex(
 																(x) => x.value === countryCode
-															)?.label
-														}
-													</Text>
-												</Pressable>
+															);
+															const next =
+																COUNTRY_OPTIONS[
+																	(idx + 1) % COUNTRY_OPTIONS.length
+																];
+															setCountryCode(next.value);
+														}}
+													>
+														<Text className="text-sm">
+															{
+																COUNTRY_OPTIONS.find(
+																	(x) => x.value === countryCode
+																)?.label
+															}
+														</Text>
+													</Pressable>
 
-												<Input
-													placeholder={
-														countryCode === "54"
-															? "11 1234-5678"
-															: t.phoneWithoutCountryCode
-													}
-													value={phoneNumber}
-													onChangeText={handlePhoneChange}
-													className={`border ${phoneError && "border-red-500"}`}
-													keyboardType="phone-pad"
-												/>
-											</View>
-											<Text className="text-xs opacity-70 mt-1">
-												{t.phoneHelp}
-											</Text>
-											{phoneError ? (
-												<Text className="text-xs text-red-600 mt-1">
-													{phoneError}
+													<Input
+														placeholder={
+															countryCode === "54"
+																? "11 1234-5678"
+																: t.phoneWithoutCountryCode
+														}
+														value={phoneNumber}
+														onChangeText={handlePhoneChange}
+														className={`border ${phoneError && "border-red-500"}`}
+														keyboardType="phone-pad"
+													/>
+												</View>
+												<Text className="text-xs opacity-70 mt-1">
+													{t.phoneHelp}
 												</Text>
-											) : null}
-										</View>
+												{phoneError ? (
+													<Text className="text-xs text-red-600 mt-1">
+														{phoneError}
+													</Text>
+												) : null}
+											</View>
+										)}
 
 										<View>
 											<Label>{t.name}</Label>
@@ -388,7 +439,7 @@ export function CheckoutModal({
 										<Button
 											variant="menu"
 											className="w-full"
-											disabled={!phoneNumber || !!phoneError}
+											disabled={!canContinue}
 											onPress={() => setShowPaymentMethod(true)}
 										>
 											<Text className="font-semibold">{t.continue}</Text>
@@ -413,9 +464,9 @@ export function CheckoutModal({
 											size="icon"
 											onPress={() => setShowPaymentMethod(false)}
 										>
-											<Feather name="arrow-left" size={22} />
+											<Feather name="arrow-left" size={22} className="text-foreground"/>
 										</Button>
-										<Text className="text-2xl font-bold">
+										<Text className="text-2xl font-bold text-foreground">
 											{t.paymentMethod}
 										</Text>
 									</View>
@@ -430,55 +481,60 @@ export function CheckoutModal({
 								<View className="gap-6">
 									<View className="pt-4 border-t border-black/10">
 										<View className="flex-row justify-between items-center">
-											<Text className="text-lg font-bold">{t.totalToPay}:</Text>
+											<Text className="text-lg font-bold text-foreground">{t.totalToPay}:</Text>
 											<Text className="text-lg font-bold text-foreground">
 												{formatARS(total)}
 											</Text>
 										</View>
 									</View>
-									{deliveryLocationName !== "envio" && (
-										<>
-											{/* METODO DE PAGO EFECTIVO */}
-											<Button
-												variant="outline"
-												size="lg"
-												className="w-full"
-												onPress={() => confirmOrder("efectivo")}
-											>
-												<Text className="font-semibold">{t.cashAtCounter}</Text>
-											</Button>
-										</>
-									)}
-									{/* METODO DE PAGO MP */}
-									{Platform.OS === "web" ? (
-										<View className="gap-2">
-											<Text className="text-base font-semibold">
-												{t.mercadoPago}
-											</Text>
-											<Button
-												variant="menu"
-												size="lg"
-												className="w-full"
-												disabled={
-													mpLoading ||
-													!phoneNumber ||
-													!!phoneError ||
-													!mpPublicKey
-												}
-												onPress={handleMercadoPagoWeb}
-											>
-												<Text className="font-semibold">
-													{mpLoading ? t.redirecting : t.payWithMercadoPago}
-												</Text>
-											</Button>
-											<Text className="text-xs opacity-70">
-												{t.mercadoPagoRedirectDescription}
-											</Text>
-										</View>
-									) : null}{" "}
-									
+
+									<View className="gap-3">
+										{paymentOptions
+											.filter((option) => option.show)
+											.map((option) => (
+												<Pressable
+													key={option.id}
+													disabled={option.disabled}
+													onPress={option.onPress}
+													className={`w-full rounded-2xl border border-black/10 bg-white p-4 ${
+														option.disabled ? "opacity-50" : "active:opacity-80"
+													}`}
+												>
+													<View className="flex-row items-center gap-4">
+														<View className="w-12 h-12 rounded-xl bg-black/5 items-center justify-center">
+															<MaterialCommunityIcons
+																name={option.icon}
+																size={24}
+																color="#111"
+																className="text-foreground"
+															/>
+														</View>
+
+														<View className="flex-1">
+															<Text className="text-base font-bold text-foreground">
+																{option.id === "mp" && mpLoading
+																	? t.redirecting
+																	: option.title}
+															</Text>
+
+															<Text className="text-sm opacity-70 mt-1 text-foregorund">
+																{option.subtitle}
+															</Text>
+														</View>
+
+														<Feather
+															name="chevron-right"
+															size={22}
+															color="#111"
+															className="text-foreground"
+														/>
+													</View>
+												</Pressable>
+											))}
+									</View>
+
 									<Button
-										variant="ghost"
+										variant="secondary"
 										className="w-full"
 										onPress={() => setShowPaymentMethod(false)}
 									>
@@ -490,15 +546,6 @@ export function CheckoutModal({
 					</ScrollView>
 				</View>
 			</Modal>
-
-			{/* <RatingModal
-				isOpen={showRatingModal}
-				onClose={() => {
-					setShowRatingModal(false);
-					onClose();
-				}}
-				onSubmit={handleRatingSubmit}
-			/> */}
 		</>
 	);
 }

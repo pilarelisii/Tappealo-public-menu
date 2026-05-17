@@ -37,3 +37,5 @@ export type PublicPromotion = {
 
 const ORDER_STATUSES = ["entrante", "preparacion", "retirar", "falta-pagar", "terminadas"] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
+
+export type CallType = "bill" | "call";

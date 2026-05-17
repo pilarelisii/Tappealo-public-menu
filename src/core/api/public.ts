@@ -10,6 +10,13 @@ export type PublicVenue = {
   address_2?: string;
   logo_url?: string | null;
   enabled: boolean;
+  color_background: string | null,
+  color_text: string | null,
+  color_primary: string | null,
+  color_foreground: string | null,
+  phone_client: boolean,
+  calls: boolean,
+  additional_content: string | null
 };
 
 export type Category = {
@@ -17,6 +24,7 @@ export type Category = {
   venue_id: string;
   name: string;
   enabled: boolean;
+  order: number;
 };
 
 export type PublicProduct = {
@@ -66,7 +74,7 @@ export type PublicPromotion = {
 export type PaymentMethod = {
   id: string;
   name: string;
-  type: "MP" | "EF" | "TC" | "TD";
+  type: "MP" | "EF" | "TC" | "TD" | "EF_Counter";
   enabled: boolean;
   payment_data?: {
     mp_public_key?: string;
@@ -231,7 +239,7 @@ export type CreateMpPreferenceBody = {
   qr_location_id: string;
 
   notes?: string;
-  phone_number?: string;
+  phone_number?: string | null;
   customer_name?: string;
 
   success_url: string;
@@ -266,7 +274,7 @@ export async function createMpPreference(
   return data as CreateMpPreferenceResponse;
 }
 
-export async function createPublicCall(slug: string, payload: { qr_location_id: string }) {
+export async function createPublicCall(slug: string, payload: { qr_location_id: string, type: string }) {
   const base = (process.env.EXPO_PUBLIC_API_BASE ?? "").replace(/\/$/, "");
   const res = await fetch(`${base}/public/${slug}/calls`, {
     method: "POST",

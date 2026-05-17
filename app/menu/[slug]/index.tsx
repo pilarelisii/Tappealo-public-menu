@@ -9,7 +9,7 @@ import { ShoppingCart } from "@/components/ShoppingCart";
 import { AppImage } from "@/components/ui/AppImage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { createPublicCall } from "@/src/core/api/public";
+import { PaymentMethod, createPublicCall } from "@/src/core/api/public";
 import { Feather } from "@expo/vector-icons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -24,7 +24,7 @@ import {
 	UIManager,
 	View,
 } from "react-native";
-
+import { HowToUseModal } from "@/components/HowToUseModal";
 import { CallButton } from "@/components/CallButton";
 import { CallButtonModal } from "@/components/CallButtonModal";
 import { InfoModal } from "@/components/InfoModal";
@@ -42,7 +42,7 @@ import {
 	type PublicPromotion,
 	type PublicVenue,
 } from "@/src/core/api/public";
-import { OrderStatus } from "@/src/core/types";
+import { CallType, OrderStatus } from "@/src/core/types";
 import { useLanguage } from "@/hooks/useLanguages";
 import { getPublicOrderByRef } from "@/src/core/api/public";
 
@@ -194,7 +194,7 @@ export default function Index() {
 		payment?: string;
 		slug?: string;
 	}>();
-	const { language, changeLanguage, t, ready } = useLanguage();
+	const { t } = useLanguage();
 	const [mpPublicKey, setMpPublicKey] = useState<string | null>(null);
 	const [slug, setSlug] = useState<string | null>(null);
 	
@@ -206,6 +206,7 @@ export default function Index() {
 		{ id: number; name: string; description: string; image_url: string }[]
 	>([]);
 
+	const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
 	const [selectedCategory, setSelectedCategory] = useState<string>("");
 	const [cartItems, setCartItems] = useState<CartLine[]>([]);
 	const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -213,6 +214,8 @@ export default function Index() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [infoModal, setInfoModal] = useState(false);
 	const [callModal, setCallModal] = useState(false);
+	const [phoneClient, setPhoneClient] = useState(false);
+	const [callsEnabled, setCallsEnabled] = useState(false);
 	const [checkoutQrLocationId, setCheckoutQrLocationId] = useState<string>("");
 	const [activeOrders, setActiveOrdersState] = useState<ActiveOrder[]>([]);
 	const [orderStatusById, setOrderStatusById] = useState<
@@ -223,6 +226,7 @@ export default function Index() {
 	>(null);
 	const scrollRef = useRef<ScrollView>(null);
 	const sectionRefs = useRef<Record<string, unknown>>({});
+
 
 	const categories = useMemo(() => {
 		if (apiCategories.length === 0) return [];
@@ -235,6 +239,8 @@ export default function Index() {
 		if (promotions.length === 0) return categories;
 		return [t.promotions, ...categories];
 	}, [categories, promotions.length]);
+
+	const [showHowToUse, setShowHowToUse] = useState(true);
 
 	// resolve slug
 	useEffect(() => {
@@ -299,6 +305,8 @@ export default function Index() {
 
 
 				const pms = await getPublicPaymentMethods(slug);
+				console.log(pms)
+				setPaymentMethods(pms);
 				if (cancelled) return;
 
 				const mp = pms.find(
@@ -427,6 +435,7 @@ export default function Index() {
 				if (!v.service_active || !v.enabled) {
 					setApiCategories([]);
 					setMenuItems([]);
+					
 					return;
 				}
 
@@ -486,6 +495,8 @@ export default function Index() {
 					});
 
 				setFeatured(featuredMapped);
+				setCallsEnabled(Boolean(v?.calls));
+				setPhoneClient(Boolean(v?.phone_client));
 			} catch (e) {
 				console.log("Error fetching public API:", e);
 			} finally {
@@ -495,7 +506,7 @@ export default function Index() {
 
 		fetchAll();
 		intervalId = setInterval(fetchAll, 5000);
-
+	
 		return () => {
 			cancelled = true;
 			clearInterval(intervalId);
@@ -784,10 +795,10 @@ export default function Index() {
 			const qr_location_id = checkoutQrLocationId || "sin-ubicacion";
 
 			const orderItems = expandCartToOrderItems(cartItems, menuItems);
-
+			const method = orderData.paymentMethod === "efectivo" ? "efectivo" : "efectivo-counter";
 			const payload = {
 				qr_location_id,
-				payment_method: "efectivo",
+				payment_method: method,
 				total,
 				name: orderData.customerName || undefined,
 				phone: orderData.phoneNumber || undefined,
@@ -811,7 +822,7 @@ export default function Index() {
 		}
 	};
 
-	const handleCallWaiter = async () => {
+	const handleCallWaiter = async (type : CallType) => {
 		try {
 			if (!slug) throw new Error("Falta slug");
 
@@ -842,7 +853,7 @@ export default function Index() {
 				return;
 			}
 
-			await createPublicCall(slug, { qr_location_id: qrClean });
+			await createPublicCall(slug, { qr_location_id: qrClean, type });
 
 			setCallModal(false);
 			// opcional: toast/alert de "Llamada enviada"
@@ -1044,7 +1055,7 @@ export default function Index() {
 				</View>
 			</ScrollView>
 
-			{deliveryLocationName === "en_lugar" && (
+			{deliveryLocationName === "en_lugar" && callsEnabled && (
 				<CallButton
 					onCallButton={() => setCallModal(true)}
 					active={totalItems > 0 || activeOrders.length > 0}
@@ -1068,6 +1079,7 @@ export default function Index() {
 
 			<CheckoutModal
 				isOpen={isCheckoutOpen}
+				phoneClient={phoneClient}
 				onClose={() => setIsCheckoutOpen(false)}
 				items={cartItems}
 				total={total}
@@ -1077,6 +1089,7 @@ export default function Index() {
 				deliveryLocationName={deliveryLocationName}
 				qrLocationId={checkoutQrLocationId}
 				refOrderId={""}
+				paymentMethods={paymentMethods}
 			/>
 			<CallButtonModal
 				isOpen={callModal}
@@ -1102,8 +1115,13 @@ export default function Index() {
 					social_link={venue?.social_link}
 					phone={venue?.phone}
 					address={{ address_1: venue?.address_1, address_2: venue?.address_2 }}
+					additional_content={venue?.additional_content}
 				/>
 			)}
+			<HowToUseModal
+				isOpen={showHowToUse}
+				onClose={() => setShowHowToUse(false)}
+			/>
 		</View>
 	);
 }
