@@ -414,7 +414,7 @@ export default function Index() {
 		};
 
 		tick();
-		intervalId = setInterval(tick, 30000);
+		intervalId = setInterval(tick, 10000);
 
 		return () => clearInterval(intervalId);
 	}, [slug]);
@@ -579,9 +579,37 @@ export default function Index() {
 	useEffect(() => {
 		if (!slug) return;
 
-		const payment = params.payment ? String(params.payment) : "";
+		const safeParams = params as Record<string, string | string[] | undefined>;
 
-		if (payment !== "success" && payment !== "failure") return;
+		const payment = safeParams.payment ? String(safeParams.payment) : "";
+		const status = safeParams.status ? String(safeParams.status) : "";
+		const collectionStatus = safeParams.collection_status
+			? String(safeParams.collection_status)
+			: "";
+		const paymentStatus = safeParams.payment_status
+			? String(safeParams.payment_status)
+			: "";
+
+		const returnValues = [payment, status, collectionStatus, paymentStatus]
+			.map((v) => v.toLowerCase())
+			.filter(Boolean);
+
+		const isSuccess = returnValues.some((v) =>
+			["success", "approved"].includes(v)
+		);
+
+		const isFailure = returnValues.some((v) =>
+			[
+				"failure",
+				"failed",
+				"rejected",
+				"cancelled",
+				"canceled",
+				"null",
+			].includes(v)
+		);
+
+		if (!isSuccess && !isFailure) return;
 
 		let cancelled = false;
 
@@ -595,18 +623,21 @@ export default function Index() {
 
 				if (pendingMpOrders.length === 0) return;
 
-				// Si canceló/falló MP, borro todos los pending
-				if (payment === "failure") {
+				if (isFailure) {
 					const nextList = list.filter(
 						(o) => !String(o.id).startsWith("mp_pending_")
 					);
 
 					await setActiveOrders(nextList);
-					setActiveOrdersState(nextList);
+
+					if (!cancelled) {
+						setActiveOrdersState(nextList);
+						setCartItems([]);
+					}
+
 					return;
 				}
 
-				// Si pagó OK, busco la orden real creada por el webhook
 				let changed = false;
 				let nextList = [...list];
 
@@ -634,7 +665,7 @@ export default function Index() {
 
 				if (changed) {
 					await setActiveOrders(nextList);
-					setActiveOrdersState(nextList);
+					if (!cancelled) setActiveOrdersState(nextList);
 				}
 			} catch (e) {
 				console.log("handle MP return error:", e);
@@ -643,22 +674,20 @@ export default function Index() {
 
 		handleMpReturn();
 
-		const intervalId =
-			payment === "success" ? setInterval(handleMpReturn, 3000) : null;
+		const intervalId = isSuccess ? setInterval(handleMpReturn, 2000) : null;
 
-		const timeoutId =
-			payment === "success"
-				? setTimeout(() => {
-						if (intervalId) clearInterval(intervalId);
-					}, 30000)
-				: null;
+		const timeoutId = isSuccess
+			? setTimeout(() => {
+					if (intervalId) clearInterval(intervalId);
+				}, 30000)
+			: null;
 
 		return () => {
 			cancelled = true;
 			if (intervalId) clearInterval(intervalId);
 			if (timeoutId) clearTimeout(timeoutId);
 		};
-	}, [slug, params.payment]);
+	}, [slug, params]);
 
 	const addPromotionToCart = (promo: PublicPromotion) => {
 		setCartItems((prev) => {
