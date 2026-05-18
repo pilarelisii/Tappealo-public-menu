@@ -41,6 +41,8 @@ function statusLabel(s?: OrderStatus) {
 		case "retirar":
 		case "falta-pagar":
 			return "Listo";
+		case "terminadas":
+			return "Entregado";
 		default:
 			return "Pendiente";
 	}
