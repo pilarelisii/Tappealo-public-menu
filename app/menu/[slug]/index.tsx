@@ -977,7 +977,7 @@ export default function Index() {
 	}
 
 	return (
-		<View className="flex-1 bg-background text-foreground">
+		<View className="flex-1 bg-background text-foreground ">
 			<ScrollView
 				ref={scrollRef}
 				className="flex-1"
@@ -1065,6 +1065,7 @@ export default function Index() {
 										].join(" ")}
 									>
 										<Text
+											style={{ fontFamily: "DMSans" }}
 											className={
 												active
 													? "font-semibold text-foreground"
@@ -1176,7 +1177,9 @@ export default function Index() {
 				<ShoppingCart
 					items={cartItems}
 					catalog={menuItems}
-					activeOrders={activeOrders}
+					activeOrders={activeOrders.filter(
+						(o) => !String(o.id).startsWith("mp_pending_")
+					)}
 					orderStatusById={orderStatusById}
 					deliveryLocation={deliveryLocationName}
 					onUpdateQuantity={updateQuantity}
@@ -1212,7 +1215,9 @@ export default function Index() {
 					totalItems={totalItems}
 					total={total}
 					onOpenCart={() => setIsCartOpen(true)}
-					activeOrders={activeOrders}
+					activeOrders={activeOrders.filter(
+						(o) => !String(o.id).startsWith("mp_pending_")
+					)}
 					orderStatusById={orderStatusById}
 				/>
 			)}
