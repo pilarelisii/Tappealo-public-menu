@@ -305,7 +305,7 @@ export default function Index() {
 
 
 				const pms = await getPublicPaymentMethods(slug);
-				console.log(pms)
+			
 				setPaymentMethods(pms);
 				if (cancelled) return;
 
@@ -465,12 +465,14 @@ export default function Index() {
 							image: p.image_url || "",
 							enabled: Boolean(p.enabled),
 							remote_id: String(p.id),
+							complements: p.complements,
 						} as any;
 					});
 
 				setMenuItems(mapped);
 
 				const promos = await getPublicPromotions(slug, true);
+				
 				if (cancelled) return;
 				setPromotions(
 					Array.isArray(promos) ? promos.filter((p: any) => p.enabled) : []
@@ -613,6 +615,7 @@ export default function Index() {
 
 		let cancelled = false;
 
+
 		const handleMpReturn = async () => {
 			try {
 				const list = await getActiveOrders();
@@ -688,6 +691,84 @@ export default function Index() {
 			if (timeoutId) clearTimeout(timeoutId);
 		};
 	}, [slug, params]);
+
+	useEffect(() => {
+		if (!slug) return;
+
+		const MP_PENDING_CHECK_INTERVAL_MS = 5 * 1000;
+		const MP_PENDING_MAX_AGE_MS = 2 * 60 * 1000;
+
+		let cancelled = false;
+
+		const checkPendingMpOrders = async () => {
+			try {
+				const list = await getActiveOrders();
+				const now = Date.now();
+
+				let nextList = [...list];
+				let changed = false;
+
+				const pendingMpOrders = list.filter((o: any) =>
+					String(o.id || "").startsWith("mp_pending_")
+				);
+
+				for (const pending of pendingMpOrders) {
+					const createdAt = Number(pending.created_at || 0);
+					const expired = now - createdAt > MP_PENDING_MAX_AGE_MS;
+
+					const real = pending.ref_order_id
+						? await getPublicOrderByRef(slug, pending.ref_order_id)
+						: null;
+
+					if (cancelled) return;
+
+					if (real?.found) {
+						nextList = nextList.filter((o: any) => o.id !== pending.id);
+
+						nextList = [
+							{
+								id: real.id,
+								ref_order_id: real.ref_order_id,
+								qr_location_id: real.qr_location_id,
+								created_at: createdAt || now,
+							},
+							...nextList.filter((o: any) => o.id !== real.id),
+						];
+
+						changed = true;
+						continue;
+					}
+
+					if (expired) {
+						nextList = nextList.filter((o: any) => o.id !== pending.id);
+						changed = true;
+					}
+				}
+
+				if (changed) {
+					await setActiveOrders(nextList);
+
+					if (!cancelled) {
+						setActiveOrdersState(nextList);
+					}
+				}
+			} catch (e) {
+				console.log("check pending MP orders error:", e);
+			}
+		};
+
+		checkPendingMpOrders();
+
+		const intervalId = setInterval(
+			checkPendingMpOrders,
+			MP_PENDING_CHECK_INTERVAL_MS
+		);
+
+		return () => {
+			cancelled = true;
+			clearInterval(intervalId);
+		};
+	}, [slug]);
 
 	const addPromotionToCart = (promo: PublicPromotion) => {
 		setCartItems((prev) => {

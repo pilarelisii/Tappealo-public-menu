@@ -20,6 +20,7 @@ export type Product = {
   venueId: string;
   createdAt?: any;
   updatedAt?: any;
+  complements?:string[];
 };
 
 export type PublicPromotion = {

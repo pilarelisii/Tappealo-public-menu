@@ -15,6 +15,7 @@ export interface MenuItemType {
   image?: string;
   category: string;
   enabled: boolean;
+  complements?:Array<string | number>
 }
 
 interface MenuItemProps {

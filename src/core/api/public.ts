@@ -37,6 +37,7 @@ export type PublicProduct = {
   price: number;
   quantity?: number;
   enabled: boolean;
+  complements?: string[];
 };
 
 export type OrderItem = {

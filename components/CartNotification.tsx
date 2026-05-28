@@ -124,7 +124,6 @@ export function CartNotification({
 								<View className="flex flex-wrap min-w-0">
 									<Text className="text-md font-semibold text-foreground min-w-0">
 										{t.youHave} {activeOrders.length}{" "}
-										
 										{activeOrders.length === 1
 											? t.activeOrderSingle
 											: t.activeOrderPlural}
@@ -147,6 +146,11 @@ export function CartNotification({
 							onPress={onOpenCart}
 							className="sm:px-8 px-5 py-4 rounded-xl shrink-0"
 						>
+							<Feather
+								name={showCart ? "shopping-cart" : "list"}
+								className="text-foreground"
+								size={showCart ? 18 : 16}
+							/>
 							<Text className="sm:text-base text-sm font-semibold text-foreground">
 								{showCart ? t.goToCart : t.viewOrders}
 							</Text>

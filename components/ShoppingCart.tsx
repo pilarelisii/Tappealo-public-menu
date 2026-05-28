@@ -7,6 +7,7 @@ import { AppImage } from "./ui/AppImage";
 import type { MenuItemType } from "./MenuItem";
 import { OrderProgressBar } from "./OrderProgress";
 import { useLanguageContext } from "@/src/i18n/LanguageProvider";
+import { useEffect } from "react";
 
 type OrderStatus = 'entrante' | 'preparacion' | 'retirar' | 'falta-pagar' | 'terminadas';
 type ActiveOrder = {
@@ -29,6 +30,7 @@ export type CartLine =
       image?: any;
       category?: string;
       quantity: number;
+	  complements?: string[];
     }
   | {
       kind: "promo";
@@ -59,32 +61,68 @@ function formatARS(n: number) {
 }
 
 function getSuggestedItems(cartItems: CartLine[], catalog: MenuItemType[]): MenuItemType[] {
-  if (cartItems.length === 0) return [];
-  if (catalog.length === 0) return [];
+  const MAX_COMPLEMENTS = 3;
 
   const productLines = cartItems.filter(
     (i): i is Extract<CartLine, { kind: "product" }> => i.kind === "product"
   );
-  if (productLines.length === 0) return [];
 
-  const cartProductIds = new Set(productLines.map((i) => i.ui_id));
-  const cartCategories = new Set(productLines.map((i) => i.category).filter(Boolean) as string[]);
+  if (productLines.length === 0 || catalog.length === 0) return [];
 
-  const sameCategory = catalog
-    .filter((p) => p.enabled !== false)
-    .filter((p) => !cartProductIds.has(p.id))
-    .filter((p) => cartCategories.has(p.category));
+  const cartProductIds = new Set(productLines.map((i) => String(i.ui_id)));
+  const selectedIds = new Set<string>();
+  const selected: MenuItemType[] = [];
 
-  const anyOther = catalog
-    .filter((p) => p.enabled !== false)
-    .filter((p) => !cartProductIds.has(p.id));
+  const getProductFromCartLine = (line: Extract<CartLine, { kind: "product" }>) => {
+    return catalog.find((p) => String(p.id) === String(line.ui_id));
+  };
 
-  const pool = sameCategory.length > 0 ? sameCategory : anyOther;
+  const addComplementsFromProduct = (
+    product: MenuItemType | undefined,
+    amount: number
+  ) => {
+    if (!product?.complements?.length) return;
 
-  return pool
-    .slice()
-    .sort((a, b) => a.price - b.price)
-    .slice(0, 3);
+    for (const complementId of product.complements) {
+      if (selected.length >= MAX_COMPLEMENTS) return;
+
+      const id = String(complementId);
+
+      if (selectedIds.has(id)) continue;
+      if (cartProductIds.has(id)) continue;
+
+      const complement = catalog.find((p) => String(p.id) === id);
+
+      if (!complement) continue;
+      if (complement.enabled === false) continue;
+
+      selected.push(complement);
+      selectedIds.add(id);
+
+      const fromThisProduct = selected.filter((s) =>
+        product.complements?.map(String).includes(String(s.id))
+      );
+
+      if (fromThisProduct.length >= amount) break;
+    }
+  };
+
+  const productsInCart = productLines
+    .map(getProductFromCartLine)
+    .filter(Boolean) as MenuItemType[];
+
+  if (productsInCart.length === 1) {
+    addComplementsFromProduct(productsInCart[0], 3);
+  } else if (productsInCart.length === 2) {
+    addComplementsFromProduct(productsInCart[0], 1);
+    addComplementsFromProduct(productsInCart[1], 2);
+  } else {
+    productsInCart.slice(0, 3).forEach((product) => {
+      addComplementsFromProduct(product, 1);
+    });
+  }
+
+  return selected;
 }
 
 export function ShoppingCart({
@@ -104,7 +142,7 @@ export function ShoppingCart({
   const totalItems = items.reduce((sum, it) => sum + it.quantity, 0);
 
   const suggestedItems = getSuggestedItems(items, catalog);
-
+  
   if (items.length === 0) {
     return (
 			<View className="flex-1 m-5">
@@ -201,7 +239,7 @@ export function ShoppingCart({
 			>
 				<View className="gap-4 mb-6">
 					{items.map((item) => {
-						const canShowImage = item.kind === "product" && !!item.image;
+						const canShowImage = (item.kind === "product" && !!item.image) || (item.kind === "promo" && !!item.image_url);
 
 						return (
 							<View
@@ -211,7 +249,7 @@ export function ShoppingCart({
 								{canShowImage ? (
 									<View className="w-20 h-20 overflow-hidden rounded-md bg-black/5">
 										<AppImage
-											uri={item.image as string}
+											uri={(item.kind === "product" && item.image) || (item.kind === "promo" && item.image_url) as string}
 											style={{ width: "100%", height: "100%" }}
 										/>
 									</View>
@@ -274,7 +312,7 @@ export function ShoppingCart({
 					{/* Complementos */}
 					{suggestedItems.length > 0 ? (
 						<View className="pt-6 border-t border-black/10 mt-6">
-							<Text className="text-lg font-bold mb-3 text-foreground">
+							<Text className="text-lg font-semibold mb-3 text-foreground">
 								{t.completeOrder}
 							</Text>
 
